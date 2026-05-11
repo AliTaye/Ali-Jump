@@ -1,0 +1,509 @@
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مغامرة الثوب الكحلي - القفز اللانهائي</title>
+    <style>
+        /* تنسيق الصفحة */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            color: white;
+            touch-action: none;
+        }
+
+        /* حاوية اللعبة (بشكل طولي للجوال) */
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            height: 100%;
+            max-height: 800px;
+            background-color: #e0f7fa; /* خلفية سماء فاتحة */
+            background-image: 
+                linear-gradient(rgba(178, 235, 242, 0.6) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(178, 235, 242, 0.6) 1px, transparent 1px);
+            background-size: 20px 20px;
+            image-rendering: pixelated;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* واجهة المستخدم (النقاط) */
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            text-shadow: 1px 1px 0 #fff;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* شاشة البداية / النهاية */
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            text-align: center;
+            color: white;
+        }
+
+        #overlay h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 0 #000;
+        }
+        
+        #overlay p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        #start-button {
+            padding: 15px 40px;
+            font-size: 24px;
+            background-color: #000080;
+            color: white;
+            border: 3px solid #fff;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #fff;
+        }
+        
+        #start-button:active {
+            transform: translate(0, 4px);
+            box-shadow: 0 0 0 #fff;
+        }
+
+        /* أزرار التحكم باللمس */
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-sizing: border-box;
+            z-index: 15;
+            user-select: none;
+        }
+
+        .touch-button {
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            border: 3px solid rgba(255, 255, 255, 0.6);
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .touch-button:active {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui">النقاط: <span id="score">0</span></div>
+        
+        <div id="overlay">
+            <h1 id="game-title">مغامرة الثوب الكحلي</h1>
+            <p id="game-desc">اقفز تلقائياً! وجه يميناً ويساراً.<br>اجمع الريد بول لقفزة خارقة!</p>
+            <button id="start-button">العب الآن</button>
+        </div>
+
+        <div class="controls">
+            <div class="touch-button" id="btn-right">→</div>
+            <div class="touch-button" id="btn-left">←</div>
+        </div>
+    </div>
+
+    <script>
+        // --- إعدادات اللعبة ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const overlay = document.getElementById('overlay');
+        const startButton = document.getElementById('start-button');
+        const overlayTitle = document.getElementById('game-title');
+        const overlayDesc = document.getElementById('game-desc');
+
+        // الدقة الداخلية للعبة (شاشة طولية)
+        const GAME_WIDTH = 320;
+        const GAME_HEIGHT = 500;
+        canvas.width = GAME_WIDTH;
+        canvas.height = GAME_HEIGHT;
+
+        // متغيرات اللعبة
+        let gameState = 'start'; 
+        let score = 0;
+        let platforms = [];
+        let redBulls = [];
+        let platformCount = 7; // عدد المنصات المبدئية في الشاشة
+        let bgOffset = 0; // لتحريك خلفية ليفربول
+
+        // --- كائنات اللعبة ---
+
+        const player = {
+            x: GAME_WIDTH / 2 - 16,
+            y: GAME_HEIGHT - 100,
+            width: 32,
+            height: 48,
+            color: '#000080', // ثوب كحلي
+            beardColor: '#222',
+            skinColor: '#e8b89c',
+            velocityX: 0,
+            velocityY: 0,
+            speed: 5,
+            jumpStrength: -10,      // القفزة العادية
+            superJumpStrength: -20, // قفزة الريد بول
+            gravity: 0.4,
+            facingRight: true
+        };
+
+        // --- التحكم ---
+        const keys = { right: false, left: false };
+
+        // لوحة المفاتيح
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'ArrowRight') keys.right = true;
+            if (e.code === 'ArrowLeft') keys.left = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.code === 'ArrowRight') keys.right = false;
+            if (e.code === 'ArrowLeft') keys.left = false;
+        });
+
+        // اللمس
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+
+        const addTouchListeners = (element, key) => {
+            element.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; });
+            element.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
+            element.addEventListener('mousedown', (e) => { e.preventDefault(); keys[key] = true; });
+            element.addEventListener('mouseup', (e) => { e.preventDefault(); keys[key] = false; });
+            element.addEventListener('mouseleave', (e) => { e.preventDefault(); keys[key] = false; });
+        };
+
+        addTouchListeners(btnLeft, 'left');
+        addTouchListeners(btnRight, 'right');
+
+        startButton.addEventListener('click', startGame);
+
+        // --- منطق اللعبة ---
+
+        function initPlatforms() {
+            platforms = [];
+            redBulls = [];
+            // منصة البداية لتضمن عدم السقوط فوراً
+            platforms.push({ x: GAME_WIDTH / 2 - 30, y: GAME_HEIGHT - 30, w: 60, h: 10 });
+            
+            // توزيع باقي المنصات
+            for (let i = 1; i < platformCount; i++) {
+                spawnPlatform(GAME_HEIGHT - 30 - (i * (GAME_HEIGHT / platformCount)));
+            }
+        }
+
+        function spawnPlatform(yPos) {
+            let pWidth = 60;
+            let pX = Math.random() * (GAME_WIDTH - pWidth);
+            platforms.push({ x: pX, y: yPos, w: pWidth, h: 10 });
+
+            // فرصة 10% لظهور ريد بول على المنصة (بشرط ألا تكون قريبة جداً من البداية)
+            if (yPos < GAME_HEIGHT - 100 && Math.random() < 0.1) {
+                redBulls.push({
+                    x: pX + pWidth / 2 - 8,
+                    y: yPos - 25,
+                    w: 16,
+                    h: 25,
+                    active: true
+                });
+            }
+        }
+
+        function startGame() {
+            gameState = 'playing';
+            overlay.style.display = 'none';
+            score = 0;
+            scoreElement.textContent = Math.floor(score);
+            
+            player.x = GAME_WIDTH / 2 - player.width / 2;
+            player.y = GAME_HEIGHT - 150;
+            player.velocityY = player.jumpStrength; // يبدأ بقفزة
+            
+            keys.left = false;
+            keys.right = false;
+
+            initPlatforms();
+            gameLoop();
+        }
+
+        function gameOver() {
+            gameState = 'lost';
+            overlay.style.display = 'flex';
+            overlayTitle.textContent = 'سقطت!';
+            overlayDesc.innerHTML = `لقد حققت:<br><b style="font-size:2em">${Math.floor(score)}</b><br>نقطة!`;
+            startButton.textContent = 'العب مرة أخرى';
+        }
+
+        function update() {
+            if (gameState !== 'playing') return;
+
+            // 1. حركة اللاعب الأفقية
+            if (keys.right) {
+                player.velocityX = player.speed;
+                player.facingRight = true;
+            } else if (keys.left) {
+                player.velocityX = -player.speed;
+                player.facingRight = false;
+            } else {
+                player.velocityX *= 0.7; // احتكاك الهواء
+            }
+
+            // تطبيق الحركة والجاذبية
+            player.x += player.velocityX;
+            player.velocityY += player.gravity;
+            player.y += player.velocityY;
+
+            // 2. اختراق الشاشة (Screen Wrap) مثل دودل جمب
+            if (player.x > GAME_WIDTH) {
+                player.x = -player.width;
+            } else if (player.x + player.width < 0) {
+                player.x = GAME_WIDTH;
+            }
+
+            // 3. التحقق من الاصطدام بالمنصات (فقط عند الهبوط)
+            if (player.velocityY > 0) {
+                for (let i = 0; i < platforms.length; i++) {
+                    let p = platforms[i];
+                    // إذا كان اللاعب فوق المنصة قليلاً ويلمسها أفقياً
+                    if (player.y + player.height > p.y && 
+                        player.y + player.height < p.y + p.h + player.velocityY && 
+                        player.x + player.width > p.x && 
+                        player.x < p.x + p.w) {
+                        
+                        // قفز!
+                        player.velocityY = player.jumpStrength;
+                        player.y = p.y - player.height; // ضبط الموقع بدقة
+                        break; // لا داعي للتحقق من باقي المنصات
+                    }
+                }
+            }
+
+            // 4. جمع الريد بول (أثناء الصعود أو الهبوط)
+            for (let i = 0; i < redBulls.length; i++) {
+                let rb = redBulls[i];
+                if (rb.active && 
+                    player.x < rb.x + rb.w && 
+                    player.x + player.width > rb.x && 
+                    player.y < rb.y + rb.h && 
+                    player.y + player.height > rb.y) {
+                    
+                    rb.active = false; // تم جمعها
+                    player.velocityY = player.superJumpStrength; // قفزة خارقة!
+                }
+            }
+
+            // 5. تحريك الكاميرا (إذا وصل اللاعب لمنتصف الشاشة العلوي)
+            if (player.y < GAME_HEIGHT / 2) {
+                let diff = (GAME_HEIGHT / 2) - player.y;
+                player.y = GAME_HEIGHT / 2; // تثبيت اللاعب في المنتصف
+                
+                score += diff * 0.1; // زيادة النقاط بناءً على الارتفاع
+                scoreElement.textContent = Math.floor(score);
+                
+                bgOffset += diff * 0.5; // تحريك الخلفية
+                document.getElementById('game-container').style.backgroundPosition = `0px ${bgOffset}px`;
+
+                // تحريك المنصات والريد بول للأسفل
+                platforms.forEach(p => p.y += diff);
+                redBulls.forEach(rb => rb.y += diff);
+            }
+
+            // 6. إدارة المنصات (حذف القديم وإضافة جديد)
+            // إزالة المنصات التي خرجت من الشاشة السفلى
+            platforms = platforms.filter(p => p.y < GAME_HEIGHT + 50);
+            redBulls = redBulls.filter(rb => rb.y < GAME_HEIGHT + 50 && rb.active);
+
+            // إضافة منصات جديدة بالأعلى إذا لزم الأمر
+            while (platforms.length < platformCount) {
+                // نضع المنصة الجديدة فوق أعلى منصة حالية بمسافة عشوائية
+                let highestY = Math.min(...platforms.map(p => p.y));
+                spawnPlatform(highestY - (GAME_HEIGHT / platformCount));
+            }
+
+            // 7. الخسارة (السقوط أسفل الشاشة)
+            if (player.y > GAME_HEIGHT) {
+                gameOver();
+            }
+        }
+
+        // --- وظائف الرسم ---
+
+        function draw() {
+            // مسح الشاشة ليكون شفافاً وتظهر الخلفية الأساسية
+            ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            drawPlatforms();
+            drawRedBulls();
+            drawPlayer();
+        }
+
+        function drawPlayer() {
+            const px = 2; // حجم بكسل الرسم (مقياس 2x2 ليناسب الحجم الجديد 32x48)
+            const colors = {
+                'H': '#151515', // شعر ولحية (أسود داكن)
+                'S': '#d29972', // لون البشرة (حنطي يطابق الصورة)
+                'E': '#ffffff', // بياض العين
+                'P': '#000000', // بؤبؤ العين
+                'M': '#8b5a45', // الفم (ابتسامة خفيفة)
+                'C': '#0b0f17', // ياقة الثوب (كحلي غامق جداً)
+                'T': '#141f36', // ثوب كحلي
+                'D': '#0a101f', // ثوب كحلي (ظل / خط الأزرار)
+                ' ': null       // فارغ (شفاف)
+            };
+
+            // تصميم الشخصية المفصل (بكسل آرت 16x24) يطابق صورتك بدقة
+            const sprite = [
+                "      HHHH      ", // 0: أعلى الشعر
+                "    HHHHHHHH    ", // 1: الشعر
+                "   HHHHHHHHHH   ", // 2: الشعر
+                "   HHSSHHHHSSH  ", // 3: الجبهة ومنابت الشعر
+                "   HHSHHSHHSSH  ", // 4: الحواجب
+                "   HHSEPSEPSSH  ", // 5: العينين (بؤبؤ وبياض)
+                "   HHSSSSSSSSH  ", // 6: الخدود
+                "   HHSSHHHHSSH  ", // 7: الشنب
+                "   HHSHHMMHHSH  ", // 8: اللحية والفم المبتسم
+                "    HHHHHHHHH   ", // 9: اللحية السفلية
+                "     HHHHHH     ", // 10: أسفل اللحية
+                "      SSSS      ", // 11: الرقبة
+                "      CCCC      ", // 12: الياقة
+                "    TTTTTTTT    ", // 13: الأكتاف
+                "  TTTTTTTTTTTT  ", // 14: أعلى الثوب
+                "  TTTTTTDTTTTT  ", // 15: الصدر (مع خط الأزرار)
+                " TTTTTTTDTTTTTT ", // 16: الأكمام
+                " TTTTTTTDTTTTTT ", // 17: الأكمام
+                " TTTTTTTDTTTTTT ", // 18: الأكمام
+                " TTTTTTTDTTTTTT ", // 19: الأكمام
+                "  TTTTTTDTTTTT  ", // 20: الجسم
+                "  TTTTTTDTTTTT  ", // 21: الجسم
+                "  TTTTTTDTTTTT  ", // 22: طيات الثوب
+                "  TTTTTTTTTTTT  "  // 23: أسفل الثوب
+            ];
+
+            for (let r = 0; r < sprite.length; r++) {
+                for (let c = 0; c < sprite[r].length; c++) {
+                    const char = sprite[r][c];
+                    if (colors[char]) {
+                        ctx.fillStyle = colors[char];
+                        // عكس الرسم إذا كان اللاعب يتجه لليسار
+                        let drawX = player.facingRight ? player.x + c * px : player.x + (15 - c) * px;
+                        ctx.fillRect(Math.floor(drawX), Math.floor(player.y + r * px), px, px);
+                    }
+                }
+            }
+        }
+
+        function drawPlatforms() {
+            platforms.forEach(p => {
+                // منصة خضراء تشبه الأرضية
+                ctx.fillStyle = '#4CAF50';
+                ctx.fillRect(p.x, p.y, p.w, 4); // العشب
+                
+                ctx.fillStyle = '#8D6E63'; // التراب/البني
+                ctx.fillRect(p.x, p.y + 4, p.w, p.h - 4);
+                
+                // خطوط صغيرة للتفاصيل
+                ctx.fillStyle = '#5D4037';
+                ctx.fillRect(p.x + 10, p.y + 6, 10, 2);
+                ctx.fillRect(p.x + 30, p.y + 8, 15, 2);
+            });
+        }
+
+        function drawRedBulls() {
+            redBulls.forEach(rb => {
+                if (!rb.active) return;
+                const x = rb.x;
+                const y = rb.y;
+                const w = rb.w;
+                const h = rb.h;
+
+                // جسم العلبة
+                ctx.fillStyle = '#e0e0e0'; // فضي
+                ctx.fillRect(x, y, w, h);
+                ctx.fillStyle = '#0f4c81'; // أزرق غامق للريد بول
+                ctx.fillRect(x + 2, y + 3, w - 4, h - 6);
+                
+                // الشعار الأحمر
+                ctx.fillStyle = '#e32636'; // أحمر
+                ctx.beginPath();
+                ctx.arc(x + w/2, y + h/2, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // الغطاء
+                ctx.fillStyle = '#b0b0b0';
+                ctx.fillRect(x + 2, y - 2, w - 4, 3);
+            });
+        }
+
+        // --- حلقة اللعبة ---
+        function gameLoop() {
+            update();
+            draw();
+            if (gameState === 'playing') {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        // الرسم الأولي
+        drawPlayer();
+
+    </script>
+</body>
+</html>
+
+
+
+
+
+```
