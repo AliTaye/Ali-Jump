@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -22,14 +21,14 @@
             touch-action: none;
         }
 
-        /* حاوية اللعبة (بشكل طولي للجوال) */
+        /* حاوية اللعبة */
         #game-container {
             position: relative;
             width: 100%;
             max-width: 450px;
             height: 100%;
             max-height: 800px;
-            background-color: #e0f7fa; /* خلفية سماء فاتحة */
+            background-color: #e0f7fa; 
             background-image: 
                 linear-gradient(rgba(178, 235, 242, 0.6) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(178, 235, 242, 0.6) 1px, transparent 1px);
@@ -45,11 +44,11 @@
             height: 100%;
         }
 
-        /* واجهة المستخدم (النقاط) */
+        /* واجهة المستخدم - النقاط */
         #ui {
             position: absolute;
             top: 10px;
-            left: 10px;
+            right: 10px;
             font-size: 24px;
             font-weight: bold;
             color: #333;
@@ -58,7 +57,7 @@
             pointer-events: none;
         }
 
-        /* شاشة البداية / النهاية */
+        /* شاشة البداية والنهاية */
         #overlay {
             position: absolute;
             top: 0;
@@ -76,7 +75,7 @@
         }
 
         #overlay h1 {
-            font-size: 2.5em;
+            font-size: 2.2em;
             margin-bottom: 10px;
             text-shadow: 3px 3px 0 #000;
         }
@@ -166,7 +165,7 @@
         const overlayTitle = document.getElementById('game-title');
         const overlayDesc = document.getElementById('game-desc');
 
-        // الدقة الداخلية للعبة (شاشة طولية)
+        // دقة الشاشة
         const GAME_WIDTH = 320;
         const GAME_HEIGHT = 500;
         canvas.width = GAME_WIDTH;
@@ -177,19 +176,30 @@
         let score = 0;
         let platforms = [];
         let redBulls = [];
-        let platformCount = 7; // عدد المنصات المبدئية في الشاشة
-        let bgOffset = 0; // لتحريك خلفية ليفربول
+        let platformCount = 7; 
+        let bgOffset = 0; 
+
+        // ==========================================
+        // 🔴🔴 هنا مكان صورتك 🔴🔴
+        // ==========================================
+        const playerImg = new Image();
+        
+        // ضع اسم صورتك هنا، تأكد أنها بصيغة PNG وخلفيتها شفافة
+        // وإذا كانت الصورة في نفس المجلد، اكتب اسمها فقط زي كذا:
+        playerImg.src = 'player.png'; 
+        // ==========================================
 
         // --- كائنات اللعبة ---
 
+        // اللاعب
         const player = {
-            x: GAME_WIDTH / 2 - 16,
+            x: GAME_WIDTH / 2 - 25,
             y: GAME_HEIGHT - 100,
-            width: 32,
-            height: 48,
-            color: '#000080', // ثوب كحلي
-            beardColor: '#222',
-            skinColor: '#e8b89c',
+            
+            // يمكنك تعديل العرض والطول هنا إذا حسيت صورتك ممطوطة أو صغيرة
+            width: 55,  
+            height: 90, 
+            
             velocityX: 0,
             velocityY: 0,
             speed: 5,
@@ -235,10 +245,10 @@
         function initPlatforms() {
             platforms = [];
             redBulls = [];
-            // منصة البداية لتضمن عدم السقوط فوراً
+            
+            // منصة البداية
             platforms.push({ x: GAME_WIDTH / 2 - 30, y: GAME_HEIGHT - 30, w: 60, h: 10 });
             
-            // توزيع باقي المنصات
             for (let i = 1; i < platformCount; i++) {
                 spawnPlatform(GAME_HEIGHT - 30 - (i * (GAME_HEIGHT / platformCount)));
             }
@@ -249,13 +259,13 @@
             let pX = Math.random() * (GAME_WIDTH - pWidth);
             platforms.push({ x: pX, y: yPos, w: pWidth, h: 10 });
 
-            // فرصة 10% لظهور ريد بول على المنصة (بشرط ألا تكون قريبة جداً من البداية)
+            // فرصة 10% لظهور ريد بول
             if (yPos < GAME_HEIGHT - 100 && Math.random() < 0.1) {
                 redBulls.push({
-                    x: pX + pWidth / 2 - 8,
-                    y: yPos - 25,
-                    w: 16,
-                    h: 25,
+                    x: pX + pWidth / 2 - 10,
+                    y: yPos - 36,
+                    w: 20, // عرض الريد بول
+                    h: 34, // ارتفاع الريد بول
                     active: true
                 });
             }
@@ -269,7 +279,7 @@
             
             player.x = GAME_WIDTH / 2 - player.width / 2;
             player.y = GAME_HEIGHT - 150;
-            player.velocityY = player.jumpStrength; // يبدأ بقفزة
+            player.velocityY = player.jumpStrength; 
             
             keys.left = false;
             keys.right = false;
@@ -300,37 +310,34 @@
                 player.velocityX *= 0.7; // احتكاك الهواء
             }
 
-            // تطبيق الحركة والجاذبية
             player.x += player.velocityX;
             player.velocityY += player.gravity;
             player.y += player.velocityY;
 
-            // 2. اختراق الشاشة (Screen Wrap) مثل دودل جمب
+            // 2. اختراق الشاشة (Screen Wrap)
             if (player.x > GAME_WIDTH) {
                 player.x = -player.width;
             } else if (player.x + player.width < 0) {
                 player.x = GAME_WIDTH;
             }
 
-            // 3. التحقق من الاصطدام بالمنصات (فقط عند الهبوط)
+            // 3. التحقق من الاصطدام بالمنصات (عند الهبوط فقط)
             if (player.velocityY > 0) {
                 for (let i = 0; i < platforms.length; i++) {
                     let p = platforms[i];
-                    // إذا كان اللاعب فوق المنصة قليلاً ويلمسها أفقياً
                     if (player.y + player.height > p.y && 
                         player.y + player.height < p.y + p.h + player.velocityY && 
                         player.x + player.width > p.x && 
                         player.x < p.x + p.w) {
                         
-                        // قفز!
                         player.velocityY = player.jumpStrength;
-                        player.y = p.y - player.height; // ضبط الموقع بدقة
-                        break; // لا داعي للتحقق من باقي المنصات
+                        player.y = p.y - player.height; 
+                        break; 
                     }
                 }
             }
 
-            // 4. جمع الريد بول (أثناء الصعود أو الهبوط)
+            // 4. جمع الريد بول
             for (let i = 0; i < redBulls.length; i++) {
                 let rb = redBulls[i];
                 if (rb.active && 
@@ -339,40 +346,36 @@
                     player.y < rb.y + rb.h && 
                     player.y + player.height > rb.y) {
                     
-                    rb.active = false; // تم جمعها
+                    rb.active = false; 
                     player.velocityY = player.superJumpStrength; // قفزة خارقة!
                 }
             }
 
-            // 5. تحريك الكاميرا (إذا وصل اللاعب لمنتصف الشاشة العلوي)
+            // 5. تحريك الكاميرا
             if (player.y < GAME_HEIGHT / 2) {
                 let diff = (GAME_HEIGHT / 2) - player.y;
-                player.y = GAME_HEIGHT / 2; // تثبيت اللاعب في المنتصف
+                player.y = GAME_HEIGHT / 2; 
                 
-                score += diff * 0.1; // زيادة النقاط بناءً على الارتفاع
+                score += diff * 0.1; 
                 scoreElement.textContent = Math.floor(score);
                 
-                bgOffset += diff * 0.5; // تحريك الخلفية
+                bgOffset += diff * 0.5; 
                 document.getElementById('game-container').style.backgroundPosition = `0px ${bgOffset}px`;
 
-                // تحريك المنصات والريد بول للأسفل
                 platforms.forEach(p => p.y += diff);
                 redBulls.forEach(rb => rb.y += diff);
             }
 
-            // 6. إدارة المنصات (حذف القديم وإضافة جديد)
-            // إزالة المنصات التي خرجت من الشاشة السفلى
+            // 6. إدارة المنصات
             platforms = platforms.filter(p => p.y < GAME_HEIGHT + 50);
             redBulls = redBulls.filter(rb => rb.y < GAME_HEIGHT + 50 && rb.active);
 
-            // إضافة منصات جديدة بالأعلى إذا لزم الأمر
             while (platforms.length < platformCount) {
-                // نضع المنصة الجديدة فوق أعلى منصة حالية بمسافة عشوائية
                 let highestY = Math.min(...platforms.map(p => p.y));
                 spawnPlatform(highestY - (GAME_HEIGHT / platformCount));
             }
 
-            // 7. الخسارة (السقوط أسفل الشاشة)
+            // 7. الخسارة (السقوط)
             if (player.y > GAME_HEIGHT) {
                 gameOver();
             }
@@ -381,7 +384,6 @@
         // --- وظائف الرسم ---
 
         function draw() {
-            // مسح الشاشة ليكون شفافاً وتظهر الخلفية الأساسية
             ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
             drawPlatforms();
@@ -390,76 +392,45 @@
         }
 
         function drawPlayer() {
-            const px = 2; // حجم بكسل الرسم (مقياس 2x2 ليناسب الحجم الجديد 32x48)
-            const colors = {
-                'H': '#151515', // شعر ولحية (أسود داكن)
-                'S': '#d29972', // لون البشرة (حنطي يطابق الصورة)
-                'E': '#ffffff', // بياض العين
-                'P': '#000000', // بؤبؤ العين
-                'M': '#8b5a45', // الفم (ابتسامة خفيفة)
-                'C': '#0b0f17', // ياقة الثوب (كحلي غامق جداً)
-                'T': '#141f36', // ثوب كحلي
-                'D': '#0a101f', // ثوب كحلي (ظل / خط الأزرار)
-                ' ': null       // فارغ (شفاف)
-            };
+            // إذا لم يتم تحميل الصورة بعد أو كان المسار غير صحيح (مربع كحلي مؤقت كبديل)
+            if (!playerImg.complete || playerImg.naturalWidth === 0) {
+                ctx.fillStyle = '#141f36';
+                ctx.fillRect(player.x, player.y, player.width, player.height);
+                
+                // إضافة عينين للتوضيح المؤقت للاتجاه
+                ctx.fillStyle = 'white';
+                let eyeX = player.facingRight ? player.x + 30 : player.x + 10;
+                ctx.fillRect(eyeX, player.y + 10, 10, 10);
+                return;
+            }
 
-            // تصميم الشخصية المفصل (بكسل آرت 16x24) يطابق صورتك بدقة
-            const sprite = [
-                "      HHHH      ", // 0: أعلى الشعر
-                "    HHHHHHHH    ", // 1: الشعر
-                "   HHHHHHHHHH   ", // 2: الشعر
-                "   HHSSHHHHSSH  ", // 3: الجبهة ومنابت الشعر
-                "   HHSHHSHHSSH  ", // 4: الحواجب
-                "   HHSEPSEPSSH  ", // 5: العينين (بؤبؤ وبياض)
-                "   HHSSSSSSSSH  ", // 6: الخدود
-                "   HHSSHHHHSSH  ", // 7: الشنب
-                "   HHSHHMMHHSH  ", // 8: اللحية والفم المبتسم
-                "    HHHHHHHHH   ", // 9: اللحية السفلية
-                "     HHHHHH     ", // 10: أسفل اللحية
-                "      SSSS      ", // 11: الرقبة
-                "      CCCC      ", // 12: الياقة
-                "    TTTTTTTT    ", // 13: الأكتاف
-                "  TTTTTTTTTTTT  ", // 14: أعلى الثوب
-                "  TTTTTTDTTTTT  ", // 15: الصدر (مع خط الأزرار)
-                " TTTTTTTDTTTTTT ", // 16: الأكمام
-                " TTTTTTTDTTTTTT ", // 17: الأكمام
-                " TTTTTTTDTTTTTT ", // 18: الأكمام
-                " TTTTTTTDTTTTTT ", // 19: الأكمام
-                "  TTTTTTDTTTTT  ", // 20: الجسم
-                "  TTTTTTDTTTTT  ", // 21: الجسم
-                "  TTTTTTDTTTTT  ", // 22: طيات الثوب
-                "  TTTTTTTTTTTT  "  // 23: أسفل الثوب
-            ];
-
-            for (let r = 0; r < sprite.length; r++) {
-                for (let c = 0; c < sprite[r].length; c++) {
-                    const char = sprite[r][c];
-                    if (colors[char]) {
-                        ctx.fillStyle = colors[char];
-                        // عكس الرسم إذا كان اللاعب يتجه لليسار
-                        let drawX = player.facingRight ? player.x + c * px : player.x + (15 - c) * px;
-                        ctx.fillRect(Math.floor(drawX), Math.floor(player.y + r * px), px, px);
-                    }
-                }
+            // رسم صورتك الشفافة!
+            if (player.facingRight) {
+                ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+            } else {
+                // الكود هذا يعكس صورتك أفقياً لما تلف يسار عشان تكون واقعية
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.drawImage(playerImg, -player.x - player.width, player.y, player.width, player.height);
+                ctx.restore();
             }
         }
 
         function drawPlatforms() {
             platforms.forEach(p => {
-                // منصة خضراء تشبه الأرضية
-                ctx.fillStyle = '#4CAF50';
-                ctx.fillRect(p.x, p.y, p.w, 4); // العشب
+                ctx.fillStyle = '#4CAF50'; // العشب
+                ctx.fillRect(p.x, p.y, p.w, 4); 
                 
-                ctx.fillStyle = '#8D6E63'; // التراب/البني
+                ctx.fillStyle = '#8D6E63'; // التراب
                 ctx.fillRect(p.x, p.y + 4, p.w, p.h - 4);
                 
-                // خطوط صغيرة للتفاصيل
-                ctx.fillStyle = '#5D4037';
+                ctx.fillStyle = '#5D4037'; // تفاصيل التربة
                 ctx.fillRect(p.x + 10, p.y + 6, 10, 2);
                 ctx.fillRect(p.x + 30, p.y + 8, 15, 2);
             });
         }
 
+        // رسم الريد بول بشكل واقعي
         function drawRedBulls() {
             redBulls.forEach(rb => {
                 if (!rb.active) return;
@@ -468,21 +439,48 @@
                 const w = rb.w;
                 const h = rb.h;
 
-                // جسم العلبة
-                ctx.fillStyle = '#e0e0e0'; // فضي
-                ctx.fillRect(x, y, w, h);
-                ctx.fillStyle = '#0f4c81'; // أزرق غامق للريد بول
-                ctx.fillRect(x + 2, y + 3, w - 4, h - 6);
+                ctx.save();
+                ctx.translate(x, y);
+
+                // 1. خلفية العلبة (فضي)
+                ctx.fillStyle = '#c0c0c0';
+                ctx.fillRect(0, 0, w, h);
+
+                // 2. الشكل الأزرق المائل
+                ctx.fillStyle = '#0f4c81';
                 
-                // الشعار الأحمر
-                ctx.fillStyle = '#e32636'; // أحمر
+                // الأزرق العلوي الأيسر
                 ctx.beginPath();
-                ctx.arc(x + w/2, y + h/2, 4, 0, Math.PI * 2);
+                ctx.moveTo(0, 0);
+                ctx.lineTo(w * 0.8, 0);
+                ctx.lineTo(0, h * 0.6);
                 ctx.fill();
-                
-                // الغطاء
-                ctx.fillStyle = '#b0b0b0';
-                ctx.fillRect(x + 2, y - 2, w - 4, 3);
+
+                // الأزرق السفلي الأيمن
+                ctx.beginPath();
+                ctx.moveTo(w, h);
+                ctx.lineTo(w * 0.2, h);
+                ctx.lineTo(w, h * 0.4);
+                ctx.fill();
+
+                // 3. الشمس الصفراء في المنتصف
+                ctx.fillStyle = '#fdd835'; 
+                ctx.beginPath();
+                ctx.arc(w/2, h/2, w*0.25, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 4. الثيران الحمراء (بشكل مبسط)
+                ctx.fillStyle = '#e32636';
+                ctx.fillRect(w/2 - w*0.35, h/2 - 2, w*0.3, 4); // الأيسر
+                ctx.fillRect(w/2 + w*0.05, h/2 - 2, w*0.3, 4); // الأيمن
+
+                // 5. الغطاء العلوي للعلبة
+                ctx.fillStyle = '#a0a0a0';
+                ctx.fillRect(0, 0, w, 3);
+                ctx.fillStyle = '#606060';
+                ctx.fillRect(w/2 - 2, 0, 4, 2); // فتحة العلبة
+
+                ctx.restore();
             });
         }
 
@@ -501,9 +499,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-```
