@@ -310,7 +310,7 @@
             platforms.push({ x: pX, y: yPos, w: pWidth, h: 12, type: pType });
 
             // فرصة 10% لظهور ريد بول
-            if (yPos < GAME_HEIGHT - 100 && Math.random() < 0.1) {
+            if (yPos < GAME_HEIGHT - 200 && Math.random() < 0.1) {
                 redBulls.push({
                     x: pX + pWidth / 2 - 10,
                     y: yPos - 36,
@@ -353,7 +353,7 @@
             if (gameState !== 'playing') return;
 
             // تحديث حالة النهار والليل كل 1000 نقطة (0-999 نهار، 1000-1999 ليل، إلخ)
-            let newDarkMode = Math.floor(score / 1000) % 2 !== 0;
+            let newDarkMode = Math.floor(score / 500) % 2 !== 0;
             if (newDarkMode !== isDarkMode) {
                 isDarkMode = newDarkMode;
                 if (isDarkMode) {
