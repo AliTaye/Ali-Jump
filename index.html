@@ -8,12 +8,11 @@
     <!-- 🔴🔴 Meta Tags (لعرض اللعبة في الواتس وتويتر) 🔴🔴 -->
     <!-- ========================================== -->
     <title>مغامرة الثوب الكحلي - القفز اللانهائي</title>
-    <meta name="description" content="لعبة قفز ممتعة! اجمع الريد بول للقفز عالياً وحاول الوصول لأعلى سكور.">
+    <meta name="description" content="لعبة قفز ممتعة! اجمع الريد بول، اقتل الوحوش، وحاول الوصول لأعلى سكور.">
     
     <!-- Open Graph (WhatsApp, Facebook, LinkedIn) -->
     <meta property="og:title" content="مغامرة الثوب الكحلي">
-    <meta property="og:description" content="لعبة قفز ممتعة! اجمع الريد بول للقفز عالياً وحاول الوصول لأعلى سكور.">
-    <!-- 🔴 ضع رابط صورة العرض هنا (يفضل مقاس 1200x630) 🔴 -->
+    <meta property="og:description" content="لعبة قفز ممتعة! اجمع الريد بول، اقتل الوحوش، وحاول الوصول لأعلى سكور.">
     <meta property="og:image" content="player.png"> 
     <meta property="og:url" content="https://example.com/your-game-link">
     <meta property="og:type" content="website">
@@ -21,8 +20,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="مغامرة الثوب الكحلي">
-    <meta name="twitter:description" content="لعبة قفز ممتعة! اجمع الريد بول للقفز عالياً وحاول الوصول لأعلى سكور.">
-    <!-- 🔴 ضع رابط صورة العرض هنا 🔴 -->
+    <meta name="twitter:description" content="لعبة قفز ممتعة! اجمع الريد بول، اقتل الوحوش، وحاول الوصول لأعلى سكور.">
     <meta name="twitter:image" content="player.png">
     <!-- ========================================== -->
 
@@ -50,8 +48,8 @@
             max-width: 450px;
             height: 100%;
             max-height: 800px;
-            background: linear-gradient(to bottom, #87CEEB, #e0f7fa); /* خلفية النهار */
-            transition: background 2s ease; /* انتقال سلس بين الليل والنهار */
+            background: linear-gradient(to bottom, #87CEEB, #e0f7fa);
+            transition: background 2s ease;
             box-shadow: 0 0 20px rgba(0,0,0,0.8);
             overflow: hidden;
         }
@@ -147,26 +145,33 @@
         }
 
         .touch-button {
-            width: 80px;
-            height: 80px;
-            background-color: rgba(0, 123, 255, 0.6); /* لون أزرق واضح وشبه شفاف */
+            width: 70px;
+            height: 70px;
+            background-color: rgba(0, 123, 255, 0.6);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
+            font-size: 30px;
             color: white;
-            border: 3px solid rgba(255, 255, 255, 0.9); /* حدود بيضاء واضحة */
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5); /* ظل لبروز الزر */
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
+
+        /* زر إطلاق النار */
+        #btn-shoot {
+            background-color: rgba(220, 53, 69, 0.6); /* لون أحمر */
+            font-size: 20px;
+        }
         
         .touch-button:active {
-            background-color: rgba(0, 123, 255, 0.9); /* لون أغمق عند الضغط */
-            transform: translateY(2px); /* تأثير ضغط خفيف */
+            transform: translateY(2px);
             box-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
+        #btn-left:active, #btn-right:active { background-color: rgba(0, 123, 255, 0.9); }
+        #btn-shoot:active { background-color: rgba(220, 53, 69, 0.9); }
     </style>
 </head>
 <body>
@@ -177,12 +182,13 @@
         
         <div id="overlay">
             <h1 id="game-title">مغامرة الثوب الكحلي</h1>
-            <p id="game-desc">اقفز تلقائياً! وجه يميناً ويساراً.<br>اجمع الريد بول لقفزة خارقة!</p>
+            <p id="game-desc">اقفز! وجه يميناً ويساراً.<br>المسافة (Space) للإطلاق.<br>المنصة تنكسر بعد قفزتين!</p>
             <button id="start-button">العب الآن</button>
         </div>
 
         <div class="controls">
             <div class="touch-button" id="btn-right">→</div>
+            <div class="touch-button" id="btn-shoot">💥</div>
             <div class="touch-button" id="btn-left">←</div>
         </div>
     </div>
@@ -198,11 +204,31 @@
         const overlayDesc = document.getElementById('game-desc');
         const gameContainer = document.getElementById('game-container');
 
-        // دقة الشاشة
         const GAME_WIDTH = 320;
         const GAME_HEIGHT = 500;
         canvas.width = GAME_WIDTH;
         canvas.height = GAME_HEIGHT;
+
+        // ==========================================
+        // 🔴🔴 إعدادات الملفات (الصور والأصوات) 🔴🔴
+        // ==========================================
+        
+        // صورة اللاعب
+        const playerImg = new Image();
+        playerImg.src = 'player.png'; 
+        
+        // صورة الوحش (تأكد من وجود صورة بصيغة PNG وبدون خلفية بنفس المسار)
+        const monsterImg = new Image();
+        monsterImg.src = 'monster.png'; // 🔴 ضع اسم ملف الوحش هنا
+
+        // ملفات الصوت (تأكد من وجود الملفات في نفس المجلد)
+        const redbullSound = new Audio();
+        redbullSound.src = 'wee.mp3'; // 🔴 ضع اسم ملف صوت الريد بول هنا
+        
+        const gameOverSound = new Audio();
+        gameOverSound.src = 'die.mp3'; // 🔴 ضع اسم ملف صوت الموت هنا
+
+        // ==========================================
 
         // متغيرات اللعبة
         let gameState = 'start'; 
@@ -211,19 +237,13 @@
         
         let platforms = [];
         let redBulls = [];
+        let monsters = [];
+        let bullets = [];
         let stars = [];
         let clouds = [];
         let platformCount = 7; 
 
-        // أنواع المنصات المتوفرة
         const platformTypes = ['wood', 'iron', 'brick', 'mud'];
-
-        // ==========================================
-        // 🔴🔴 هنا مكان صورتك 🔴🔴
-        // ==========================================
-        const playerImg = new Image();
-        playerImg.src = 'player.png'; 
-        // ==========================================
 
         // --- كائنات اللعبة ---
         const player = {
@@ -241,19 +261,27 @@
         };
 
         // --- التحكم ---
-        const keys = { right: false, left: false };
+        const keys = { right: false, left: false, shoot: false };
 
         document.addEventListener('keydown', (e) => {
             if (e.code === 'ArrowRight') keys.right = true;
             if (e.code === 'ArrowLeft') keys.left = true;
+            if (e.code === 'Space') {
+                if (!keys.shoot && gameState === 'playing') {
+                    shootBullet();
+                }
+                keys.shoot = true;
+            }
         });
         document.addEventListener('keyup', (e) => {
             if (e.code === 'ArrowRight') keys.right = false;
             if (e.code === 'ArrowLeft') keys.left = false;
+            if (e.code === 'Space') keys.shoot = false;
         });
 
         const btnLeft = document.getElementById('btn-left');
         const btnRight = document.getElementById('btn-right');
+        const btnShoot = document.getElementById('btn-shoot');
 
         const addTouchListeners = (element, key) => {
             element.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; });
@@ -265,40 +293,44 @@
         addTouchListeners(btnLeft, 'left');
         addTouchListeners(btnRight, 'right');
 
+        // زر إطلاق النار للموبايل
+        btnShoot.addEventListener('touchstart', (e) => { e.preventDefault(); if(gameState === 'playing') shootBullet(); });
+        btnShoot.addEventListener('mousedown', (e) => { e.preventDefault(); if(gameState === 'playing') shootBullet(); });
+
         startButton.addEventListener('click', startGame);
+
+        // إطلاق النار
+        function shootBullet() {
+            bullets.push({
+                x: player.facingRight ? player.x + player.width - 10 : player.x,
+                y: player.y + player.height / 2,
+                w: 10,
+                h: 20,
+                vy: -12, // سرعة الطلقة للأعلى
+                active: true
+            });
+        }
 
         // --- تهيئة عناصر الخلفية ---
         function initBackground() {
             stars = [];
             clouds = [];
-            // إنشاء النجوم
             for (let i = 0; i < 60; i++) {
-                stars.push({
-                    x: Math.random() * GAME_WIDTH,
-                    y: Math.random() * GAME_HEIGHT,
-                    r: Math.random() * 1.5 + 0.5,
-                    alpha: Math.random()
-                });
+                stars.push({ x: Math.random() * GAME_WIDTH, y: Math.random() * GAME_HEIGHT, r: Math.random() * 1.5 + 0.5, alpha: Math.random() });
             }
-            // إنشاء الغيوم
             for (let i = 0; i < 5; i++) {
-                clouds.push({
-                    x: Math.random() * GAME_WIDTH,
-                    y: Math.random() * GAME_HEIGHT,
-                    speed: 0.2 + Math.random() * 0.4,
-                    w: 40 + Math.random() * 50
-                });
+                clouds.push({ x: Math.random() * GAME_WIDTH, y: Math.random() * GAME_HEIGHT, speed: 0.2 + Math.random() * 0.4, w: 40 + Math.random() * 50 });
             }
         }
-
-        // --- منطق اللعبة ---
 
         function initPlatforms() {
             platforms = [];
             redBulls = [];
+            monsters = [];
+            bullets = [];
             
-            // منصة البداية (خشب لتكون بسيطة)
-            platforms.push({ x: GAME_WIDTH / 2 - 30, y: GAME_HEIGHT - 30, w: 60, h: 12, type: 'wood' });
+            // منصة البداية (غير قابلة للكسر للسهولة)
+            platforms.push({ x: GAME_WIDTH / 2 - 30, y: GAME_HEIGHT - 30, w: 60, h: 12, type: 'wood', jumpsLeft: 999 });
             
             for (let i = 1; i < platformCount; i++) {
                 spawnPlatform(GAME_HEIGHT - 30 - (i * (GAME_HEIGHT / platformCount)));
@@ -308,17 +340,26 @@
         function spawnPlatform(yPos) {
             let pWidth = 60;
             let pX = Math.random() * (GAME_WIDTH - pWidth);
-            // اختيار نوع عشوائي للمنصة
             let pType = platformTypes[Math.floor(Math.random() * platformTypes.length)];
-            platforms.push({ x: pX, y: yPos, w: pWidth, h: 12, type: pType });
+            
+            // إضافة خاصية jumpsLeft (تتحمل قفزتين)
+            let newPlatform = { x: pX, y: yPos, w: pWidth, h: 12, type: pType, jumpsLeft: 2, broken: false };
+            platforms.push(newPlatform);
 
-            // فرصة 10% لظهور ريد بول
+            // فرصة ظهور ريد بول (10%)
+            let hasRedBull = false;
             if (yPos < GAME_HEIGHT - 200 && Math.random() < 0.1) {
-                redBulls.push({
-                    x: pX + pWidth / 2 - 10,
-                    y: yPos - 36,
-                    w: 20, 
-                    h: 34, 
+                redBulls.push({ x: pX + pWidth / 2 - 10, y: yPos - 36, w: 20, h: 34, active: true });
+                hasRedBull = true;
+            }
+
+            // إذا لم يكن هناك ريد بول، فرصة 15% لظهور وحش
+            if (!hasRedBull && yPos < GAME_HEIGHT - 300 && Math.random() < 0.15) {
+                monsters.push({
+                    x: pX + pWidth / 2 - 20,
+                    y: yPos - 40,
+                    w: 40,
+                    h: 40,
                     active: true
                 });
             }
@@ -347,58 +388,53 @@
         function gameOver() {
             gameState = 'lost';
             overlay.style.display = 'flex';
-            overlayTitle.textContent = 'سقطت!';
+            overlayTitle.textContent = 'انتهت اللعبة!';
             overlayDesc.innerHTML = `لقد حققت:<br><b style="font-size:2em">${Math.floor(score)}</b><br>نقطة!`;
             startButton.textContent = 'العب مرة أخرى';
+            
+            // تشغيل صوت الموت
+            gameOverSound.currentTime = 0; // إعادة الصوت للبداية
+            gameOverSound.play().catch(e => console.log("الصوت يحتاج تفاعل المستخدم أولاً"));
         }
 
         function update() {
             if (gameState !== 'playing') return;
 
-            // تحديث حالة النهار والليل كل 1000 نقطة (0-999 نهار، 1000-1999 ليل، إلخ)
+            // تحديث الليل والنهار
             let newDarkMode = Math.floor(score / 500) % 2 !== 0;
             if (newDarkMode !== isDarkMode) {
                 isDarkMode = newDarkMode;
-                if (isDarkMode) {
-                    gameContainer.classList.add('dark-mode');
-                } else {
-                    gameContainer.classList.remove('dark-mode');
-                }
+                if (isDarkMode) gameContainer.classList.add('dark-mode');
+                else gameContainer.classList.remove('dark-mode');
             }
 
-            // حركة اللاعب الأفقية
-            if (keys.right) {
-                player.velocityX = player.speed;
-                player.facingRight = true;
-            } else if (keys.left) {
-                player.velocityX = -player.speed;
-                player.facingRight = false;
-            } else {
-                player.velocityX *= 0.7; // احتكاك الهواء
-            }
+            // حركة اللاعب
+            if (keys.right) { player.velocityX = player.speed; player.facingRight = true; }
+            else if (keys.left) { player.velocityX = -player.speed; player.facingRight = false; }
+            else { player.velocityX *= 0.7; }
 
             player.x += player.velocityX;
             player.velocityY += player.gravity;
             player.y += player.velocityY;
 
             // اختراق الشاشة
-            if (player.x > GAME_WIDTH) {
-                player.x = -player.width;
-            } else if (player.x + player.width < 0) {
-                player.x = GAME_WIDTH;
-            }
+            if (player.x > GAME_WIDTH) player.x = -player.width;
+            else if (player.x + player.width < 0) player.x = GAME_WIDTH;
 
             // التحقق من الاصطدام بالمنصات
             if (player.velocityY > 0) {
                 for (let i = 0; i < platforms.length; i++) {
                     let p = platforms[i];
-                    if (player.y + player.height > p.y && 
-                        player.y + player.height < p.y + p.h + player.velocityY && 
-                        player.x + player.width > p.x && 
-                        player.x < p.x + p.w) {
+                    if (!p.broken && player.y + player.height > p.y && player.y + player.height < p.y + p.h + player.velocityY && player.x + player.width > p.x && player.x < p.x + p.w) {
                         
                         player.velocityY = player.jumpStrength;
                         player.y = p.y - player.height; 
+                        
+                        // تنقيص عدد القفزات المتبقية للمنصة
+                        p.jumpsLeft--;
+                        if (p.jumpsLeft <= 0) {
+                            p.broken = true; // كسر المنصة
+                        }
                         break; 
                     }
                 }
@@ -407,18 +443,44 @@
             // جمع الريد بول
             for (let i = 0; i < redBulls.length; i++) {
                 let rb = redBulls[i];
-                if (rb.active && 
-                    player.x < rb.x + rb.w && 
-                    player.x + player.width > rb.x && 
-                    player.y < rb.y + rb.h && 
-                    player.y + player.height > rb.y) {
-                    
+                if (rb.active && player.x < rb.x + rb.w && player.x + player.width > rb.x && player.y < rb.y + rb.h && player.y + player.height > rb.y) {
                     rb.active = false; 
                     player.velocityY = player.superJumpStrength; 
+                    
+                    // تشغيل صوت الريد بول
+                    redbullSound.currentTime = 0;
+                    redbullSound.play().catch(e => console.log("الصوت غير مفعل"));
                 }
             }
 
-            // تحريك الكاميرا والخلفية
+            // اصطدام اللاعب بالوحش (خسارة)
+            for (let i = 0; i < monsters.length; i++) {
+                let m = monsters[i];
+                if (m.active && player.x < m.x + m.w && player.x + player.width > m.x && player.y < m.y + m.h && player.y + player.height > m.y) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            // حركة الطلقات واصطدامها بالوحوش
+            bullets.forEach(b => {
+                if(b.active) {
+                    b.y += b.vy;
+                    // اختفاء الطلقة خارج الشاشة
+                    if (b.y < 0) b.active = false;
+                    
+                    // التحقق من اصطدام الطلقة بالوحش
+                    monsters.forEach(m => {
+                        if (m.active && b.active && b.x < m.x + m.w && b.x + b.w > m.x && b.y < m.y + m.h && b.y + b.h > m.y) {
+                            m.active = false; // قتل الوحش
+                            b.active = false; // تدمير الطلقة
+                            score += 50; // مكافأة لقتل الوحش
+                        }
+                    });
+                }
+            });
+
+            // تحريك الكاميرا (نزول العناصر للأسفل)
             if (player.y < GAME_HEIGHT / 2) {
                 let diff = (GAME_HEIGHT / 2) - player.y;
                 player.y = GAME_HEIGHT / 2; 
@@ -426,70 +488,60 @@
                 score += diff * 0.1; 
                 scoreElement.textContent = Math.floor(score);
 
-                // تحريك المنصات والريد بول
                 platforms.forEach(p => p.y += diff);
                 redBulls.forEach(rb => rb.y += diff);
+                monsters.forEach(m => m.y += diff);
+                bullets.forEach(b => b.y += diff);
 
-                // تأثير البارالاكس للنجوم والغيوم (تتحرك أبطأ من المنصات لتعطي عمق)
-                stars.forEach(s => {
-                    s.y += diff * 0.2;
-                    if (s.y > GAME_HEIGHT) s.y -= GAME_HEIGHT;
-                });
-                clouds.forEach(c => {
-                    c.y += diff * 0.4;
-                    if (c.y > GAME_HEIGHT) { c.y = -50; c.x = Math.random() * GAME_WIDTH; }
-                });
+                stars.forEach(s => { s.y += diff * 0.2; if (s.y > GAME_HEIGHT) s.y -= GAME_HEIGHT; });
+                clouds.forEach(c => { c.y += diff * 0.4; if (c.y > GAME_HEIGHT) { c.y = -50; c.x = Math.random() * GAME_WIDTH; } });
             }
 
-            // تحريك مستمر للغيوم والنجوم (حتى لو اللاعب واقف)
-            clouds.forEach(c => {
-                c.x += c.speed;
-                if (c.x > GAME_WIDTH + 50) c.x = -c.w;
-            });
-            stars.forEach(s => {
-                s.alpha += (Math.random() - 0.5) * 0.1; // تلألؤ النجوم
-                if (s.alpha < 0) s.alpha = 0;
-                if (s.alpha > 1) s.alpha = 1;
-            });
+            // تحريك مستمر للخلفية
+            clouds.forEach(c => { c.x += c.speed; if (c.x > GAME_WIDTH + 50) c.x = -c.w; });
+            stars.forEach(s => { s.alpha += (Math.random() - 0.5) * 0.1; if (s.alpha < 0) s.alpha = 0; if (s.alpha > 1) s.alpha = 1; });
 
-            // إدارة المنصات
-            platforms = platforms.filter(p => p.y < GAME_HEIGHT + 50);
+            // تنظيف المصفوفات وإزالة المنصات المكسورة أو الخارجة عن الشاشة
+            platforms = platforms.filter(p => p.y < GAME_HEIGHT + 50 && !p.broken);
             redBulls = redBulls.filter(rb => rb.y < GAME_HEIGHT + 50 && rb.active);
+            monsters = monsters.filter(m => m.y < GAME_HEIGHT + 50 && m.active);
+            bullets = bullets.filter(b => b.active);
 
-            while (platforms.length < platformCount) {
-                let highestY = Math.min(...platforms.map(p => p.y));
-                spawnPlatform(highestY - (GAME_HEIGHT / platformCount));
+            // توليد منصات جديدة
+            if (platforms.length > 0) {
+                while (platforms.length < platformCount) {
+                    let highestY = Math.min(...platforms.map(p => p.y));
+                    spawnPlatform(highestY - (GAME_HEIGHT / platformCount));
+                }
+            } else {
+                 spawnPlatform(player.y - 100); // في حال تكسرت كل المنصات بالغلط
             }
 
-            // الخسارة
+            // الخسارة بالوقوع
             if (player.y > GAME_HEIGHT) {
                 gameOver();
             }
         }
 
         // --- وظائف الرسم ---
-
         function draw() {
-            // تنظيف الكانفاس (شفاف لكي تظهر خلفية الـ CSS)
             ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
             drawBackgroundElements();
             drawPlatforms();
             drawRedBulls();
+            drawMonsters();
+            drawBullets();
             drawPlayer();
         }
 
         function drawBackgroundElements() {
-            // رسم النجوم (تظهر أكثر في الليل)
             let starOpacity = isDarkMode ? 1 : 0.2;
             stars.forEach(s => {
                 ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha * starOpacity})`;
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
             });
 
-            // رسم الغيوم (تظهر أكثر في النهار)
             ctx.fillStyle = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.6)';
             clouds.forEach(c => {
                 ctx.beginPath();
@@ -500,17 +552,104 @@
             });
         }
 
+        function drawPlatforms() {
+            platforms.forEach(p => {
+                if (p.broken) return;
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+
+                if (p.type === 'wood') {
+                    ctx.fillStyle = '#8B5A2B'; ctx.fillRect(0, 0, p.w, p.h);
+                    ctx.fillStyle = '#5C3A21'; ctx.fillRect(0, 2, p.w, 2); ctx.fillRect(0, 8, p.w, 2);
+                } 
+                else if (p.type === 'iron') {
+                    ctx.fillStyle = '#7f8c8d'; ctx.fillRect(0, 0, p.w, p.h);
+                    ctx.fillStyle = '#bdc3c7'; ctx.fillRect(0, 0, p.w, 3);
+                    ctx.fillStyle = '#2c3e50'; ctx.fillRect(4, 4, 3, 3); ctx.fillRect(p.w - 7, 4, 3, 3);
+                } 
+                else if (p.type === 'brick') {
+                    ctx.fillStyle = '#B22222'; ctx.fillRect(0, 0, p.w, p.h);
+                    ctx.fillStyle = '#e0e0e0'; ctx.fillRect(0, 5, p.w, 2); 
+                    ctx.fillRect(15, 0, 2, 5); ctx.fillRect(40, 0, 2, 5); ctx.fillRect(25, 7, 2, 5);
+                } 
+                else if (p.type === 'mud') {
+                    ctx.fillStyle = '#5c4033'; ctx.beginPath(); ctx.roundRect(0, 0, p.w, p.h, 5); ctx.fill();
+                    ctx.fillStyle = '#3e2723'; 
+                    ctx.beginPath(); ctx.arc(10, 6, 4, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(35, 8, 3, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(50, 4, 4, 0, Math.PI*2); ctx.fill();
+                }
+
+                // رسم تشقق إذا كانت المنصة تم القفز عليها مرة واحدة وباقي لها قفزة واحدة
+                if (p.jumpsLeft === 1) {
+                    ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(p.w / 2, 0);
+                    ctx.lineTo(p.w / 2 + 5, p.h / 2);
+                    ctx.lineTo(p.w / 2 - 5, p.h);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            });
+        }
+
+        function drawRedBulls() {
+            redBulls.forEach(rb => {
+                if (!rb.active) return;
+                ctx.save(); ctx.translate(rb.x, rb.y);
+                ctx.fillStyle = '#c0c0c0'; ctx.fillRect(0, 0, rb.w, rb.h);
+                ctx.fillStyle = '#0f4c81';
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(rb.w * 0.8, 0); ctx.lineTo(0, rb.h * 0.6); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(rb.w, rb.h); ctx.lineTo(rb.w * 0.2, rb.h); ctx.lineTo(rb.w, rb.h * 0.4); ctx.fill();
+                ctx.fillStyle = '#fdd835'; ctx.beginPath(); ctx.arc(rb.w/2, rb.h/2, rb.w*0.25, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#e32636'; ctx.fillRect(rb.w/2 - rb.w*0.35, rb.h/2 - 2, rb.w*0.3, 4); ctx.fillRect(rb.w/2 + rb.w*0.05, rb.h/2 - 2, rb.w*0.3, 4); 
+                ctx.fillStyle = '#a0a0a0'; ctx.fillRect(0, 0, rb.w, 3);
+                ctx.fillStyle = '#606060'; ctx.fillRect(rb.w/2 - 2, 0, 4, 2); 
+                ctx.restore();
+            });
+        }
+
+        function drawMonsters() {
+            monsters.forEach(m => {
+                if (!m.active) return;
+                if (monsterImg.complete && monsterImg.naturalWidth !== 0) {
+                    // إذا الصورة موجودة ارسمها
+                    ctx.drawImage(monsterImg, m.x, m.y, m.w, m.h);
+                } else {
+                    // رسم بديل للوحش في حال لم توجد الصورة
+                    ctx.fillStyle = 'purple';
+                    ctx.beginPath(); ctx.arc(m.x + m.w/2, m.y + m.h/2, m.w/2, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = 'red';
+                    ctx.beginPath(); ctx.arc(m.x + m.w/3, m.y + m.h/3, 4, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(m.x + m.w - m.w/3, m.y + m.h/3, 4, 0, Math.PI*2); ctx.fill();
+                }
+            });
+        }
+
+        function drawBullets() {
+            bullets.forEach(b => {
+                if (!b.active) return;
+                ctx.fillStyle = '#FFD700'; // لون الطلقة أصفر
+                ctx.beginPath();
+                ctx.arc(b.x + b.w/2, b.y + b.h/2, b.w/2, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "red";
+                ctx.shadowBlur = 0; // reset
+            });
+        }
+
         function drawPlayer() {
-            // رسم بديل للشخصية في حال لم تكن الصورة موجودة
             if (!playerImg.complete || playerImg.naturalWidth === 0) {
-                ctx.fillStyle = '#141f36';
-                ctx.fillRect(player.x, player.y, player.width, player.height);
+                ctx.fillStyle = '#141f36'; ctx.fillRect(player.x, player.y, player.width, player.height);
                 ctx.fillStyle = 'white';
                 let eyeX = player.facingRight ? player.x + 30 : player.x + 10;
                 ctx.fillRect(eyeX, player.y + 10, 10, 10);
                 return;
             }
-
             if (player.facingRight) {
                 ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
             } else {
@@ -519,90 +658,6 @@
                 ctx.drawImage(playerImg, -player.x - player.width, player.y, player.width, player.height);
                 ctx.restore();
             }
-        }
-
-        function drawPlatforms() {
-            platforms.forEach(p => {
-                ctx.save();
-                ctx.translate(p.x, p.y);
-
-                if (p.type === 'wood') {
-                    // خشب
-                    ctx.fillStyle = '#8B5A2B'; 
-                    ctx.fillRect(0, 0, p.w, p.h);
-                    ctx.fillStyle = '#5C3A21'; // خطوط الخشب
-                    ctx.fillRect(0, 2, p.w, 2);
-                    ctx.fillRect(0, 8, p.w, 2);
-                } 
-                else if (p.type === 'iron') {
-                    // حديد
-                    ctx.fillStyle = '#7f8c8d'; 
-                    ctx.fillRect(0, 0, p.w, p.h);
-                    ctx.fillStyle = '#bdc3c7'; // لمعة الحديد
-                    ctx.fillRect(0, 0, p.w, 3);
-                    ctx.fillStyle = '#2c3e50'; // مسامير
-                    ctx.fillRect(4, 4, 3, 3);
-                    ctx.fillRect(p.w - 7, 4, 3, 3);
-                } 
-                else if (p.type === 'brick') {
-                    // طوب
-                    ctx.fillStyle = '#B22222'; 
-                    ctx.fillRect(0, 0, p.w, p.h);
-                    ctx.fillStyle = '#e0e0e0'; // الإسمنت بين الطوب
-                    ctx.fillRect(0, 5, p.w, 2); 
-                    ctx.fillRect(15, 0, 2, 5);
-                    ctx.fillRect(40, 0, 2, 5);
-                    ctx.fillRect(25, 7, 2, 5);
-                } 
-                else if (p.type === 'mud') {
-                    // طين
-                    ctx.fillStyle = '#5c4033'; 
-                    ctx.beginPath();
-                    ctx.roundRect(0, 0, p.w, p.h, 5); // زوايا دائرية للطين
-                    ctx.fill();
-                    ctx.fillStyle = '#3e2723'; // بقع الطين
-                    ctx.beginPath(); ctx.arc(10, 6, 4, 0, Math.PI*2); ctx.fill();
-                    ctx.beginPath(); ctx.arc(35, 8, 3, 0, Math.PI*2); ctx.fill();
-                    ctx.beginPath(); ctx.arc(50, 4, 4, 0, Math.PI*2); ctx.fill();
-                }
-
-                ctx.restore();
-            });
-        }
-
-        // رسم الريد بول
-        function drawRedBulls() {
-            redBulls.forEach(rb => {
-                if (!rb.active) return;
-                const x = rb.x;
-                const y = rb.y;
-                const w = rb.w;
-                const h = rb.h;
-
-                ctx.save();
-                ctx.translate(x, y);
-
-                ctx.fillStyle = '#c0c0c0';
-                ctx.fillRect(0, 0, w, h);
-
-                ctx.fillStyle = '#0f4c81';
-                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(w * 0.8, 0); ctx.lineTo(0, h * 0.6); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(w, h); ctx.lineTo(w * 0.2, h); ctx.lineTo(w, h * 0.4); ctx.fill();
-
-                ctx.fillStyle = '#fdd835'; 
-                ctx.beginPath(); ctx.arc(w/2, h/2, w*0.25, 0, Math.PI * 2); ctx.fill();
-
-                ctx.fillStyle = '#e32636';
-                ctx.fillRect(w/2 - w*0.35, h/2 - 2, w*0.3, 4); 
-                ctx.fillRect(w/2 + w*0.05, h/2 - 2, w*0.3, 4); 
-
-                ctx.fillStyle = '#a0a0a0';
-                ctx.fillRect(0, 0, w, 3);
-                ctx.fillStyle = '#606060';
-                ctx.fillRect(w/2 - 2, 0, 4, 2); 
-
-                ctx.restore();
-            });
         }
 
         // --- حلقة اللعبة ---
