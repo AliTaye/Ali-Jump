@@ -24,6 +24,11 @@
     <meta name="twitter:image" content="player.png">
     <!-- ========================================== -->
 
+    <!-- إضافة خط تجاوال من قوقل -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+
     <style>
         /* تنسيق الصفحة */
         body {
@@ -36,7 +41,7 @@
             justify-content: center;
             height: 100vh;
             overflow: hidden;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Tajawal', sans-serif;
             color: white;
             touch-action: none;
         }
@@ -130,48 +135,28 @@
             transform: translate(0, 4px);
             box-shadow: 0 0 0 #fff;
         }
-
-        /* أزرار التحكم باللمس */
-        .controls {
-            position: absolute;
-            bottom: 20px;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 20px;
-            box-sizing: border-box;
-            z-index: 15;
-            user-select: none;
-        }
-
-        .touch-button {
-            width: 70px;
-            height: 70px;
-            background-color: rgba(0, 123, 255, 0.6);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            color: white;
-            border: 3px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* زر إطلاق النار */
-        #btn-shoot {
-            background-color: rgba(220, 53, 69, 0.6); /* لون أحمر */
-            font-size: 20px;
-        }
         
-        .touch-button:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        #cookie-ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #d2691e;
+            text-shadow: 1px 1px 0 #fff;
+            z-index: 10;
+            pointer-events: none;
         }
-        #btn-left:active, #btn-right:active { background-color: rgba(0, 123, 255, 0.9); }
-        #btn-shoot:active { background-color: rgba(220, 53, 69, 0.9); }
+
+        #game-container.dark-mode #cookie-ui {
+            color: #f4a460;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        /* الأزرار القديمة تم إخفاؤها */
+        .controls {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -179,17 +164,27 @@
     <div id="game-container">
         <canvas id="gameCanvas"></canvas>
         <div id="ui">النقاط: <span id="score">0</span></div>
+        <div id="cookie-ui">🍪 <span id="cookie-count">0</span>/10</div>
         
         <div id="overlay">
-            <h1 id="game-title">مغامرة الثوب الكحلي</h1>
-            <p id="game-desc">اقفز! وجه يميناً ويساراً.<br>المسافة (Space) للإطلاق.<br>المنصة تنكسر بعد قفزتين!</p>
-            <button id="start-button">العب الآن</button>
-        </div>
+            <img src="cover.png" id="cover-img" alt="غلاف اللعبة" style="max-width: 150px; height: auto; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+            <h1 id="game-title" style="margin-bottom: 5px; font-size: 2.5em; text-shadow: 3px 3px 0 #000;">علي النطاط</h1>
+            <h2 id="game-subtitle" style="font-size: 1.2em; color: #fdd835; margin-top: 0; margin-bottom: 20px; text-shadow: 2px 2px 0 #000;">بالثوب الكحلي والسماعات</h2>
+            
+            <div id="game-desc" style="text-align: right; background-color: rgba(0,0,0,0.6); padding: 15px 20px; border-radius: 10px; margin-bottom: 25px; border: 2px solid rgba(255,255,255,0.2); width: 85%; max-width: 320px;">
+                <div style="color: #4facfe; font-weight: bold; font-size: 1.1em; margin-bottom: 8px;">توجيهات:</div>
+                <ul style="margin: 0 0 15px 0; padding-right: 25px; line-height: 1.6; font-size: 0.95em; color: #eee;">
+                    <li>اسحب يمين ويسار للحركة</li>
+                    <li>انقر بجانب جبلي! ولا تسأل لماذا</li>
+                    <li>اجمع الكوكيز للنطة العالية</li>
+                </ul>
+                <div style="color: #ff9a9e; font-weight: bold; font-size: 1.1em; margin-bottom: 8px;">ملاحظات:</div>
+                <ul style="margin: 0; padding-right: 25px; line-height: 1.6; font-size: 0.95em; color: #eee;">
+                    <li>المنصات تنكسر حسب قوتها!</li>
+                </ul>
+            </div>
 
-        <div class="controls">
-            <div class="touch-button" id="btn-right">→</div>
-            <div class="touch-button" id="btn-shoot">💥</div>
-            <div class="touch-button" id="btn-left">←</div>
+            <button id="start-button">العب الآن</button>
         </div>
     </div>
 
@@ -217,6 +212,10 @@
         const playerImg = new Image();
         playerImg.src = 'player.png'; 
         
+        // 🔴🔴 صورة اللاعب أثناء الهجوم (الضربة) 🔴🔴
+        const attackImg = new Image();
+        attackImg.src = 'player_attack.png'; // 🔴 ضع اسم صورة اللاعب وهو يهاجم هنا
+
         // صورة الوحش (تأكد من وجود صورة بصيغة PNG وبدون خلفية بنفس المسار)
         const monsterImg = new Image();
         monsterImg.src = 'monster.png'; // 🔴 ضع اسم ملف الوحش هنا
@@ -228,22 +227,29 @@
         const gameOverSound = new Audio();
         gameOverSound.src = 'die.mp4'; // 🔴 ضع اسم ملف صوت الموت هنا
 
+        // 🔴🔴 صوت أكل الكوكيز 🔴🔴
+        const cookieSound = new Audio();
+        cookieSound.src = 'cookie_bite.mp3'; // 🔴 ضع اسم ملف صوت أكل الكوكيز هنا (صوت قصير)
+
         // ==========================================
 
         // متغيرات اللعبة
         let gameState = 'start'; 
         let score = 0;
         let isDarkMode = false;
+        let cookieCount = 0;
         
         let platforms = [];
         let redBulls = [];
         let monsters = [];
-        let bullets = [];
-        let stars = [];
-        let clouds = [];
-        let platformCount = 7; 
+        let cookies = [];
+        let powerups = []; // مصفوفة لعناصر القوة
+        let platformCount = 10; // ضبطنا العدد عشان تكون القفزة تغطي منصتين بالضبط
 
-        const platformTypes = ['wood', 'iron', 'brick', 'mud'];
+        const platformTypes = ['wood', 'iron', 'brick', 'mud', 'moving'];
+
+        // تأثير ضربة المدى القريب
+        let meleeAttackObj = { active: false, radius: 0, maxRadius: 100 };
 
         // --- كائنات اللعبة ---
         const player = {
@@ -257,18 +263,28 @@
             jumpStrength: -10,      
             superJumpStrength: -20, 
             gravity: 0.4,
-            facingRight: true
+            facingRight: true,
+            hasShield: false,
+            hasMagnet: false,
+            isFlying: false,
+            magnetRadius: 150,
+            shieldTimer: 0,
+            magnetTimer: 0,
+            flyTimer: 0,
+            cookieInvincibilityTimer: 0,
+            redbullInvincibilityTimer: 0
         };
 
         // --- التحكم ---
         const keys = { right: false, left: false, shoot: false };
 
+        // التحكم بالكيبورد (للديسكتوب)
         document.addEventListener('keydown', (e) => {
             if (e.code === 'ArrowRight') keys.right = true;
             if (e.code === 'ArrowLeft') keys.left = true;
             if (e.code === 'Space') {
                 if (!keys.shoot && gameState === 'playing') {
-                    shootBullet();
+                    triggerMeleeAttack();
                 }
                 keys.shoot = true;
             }
@@ -279,36 +295,68 @@
             if (e.code === 'Space') keys.shoot = false;
         });
 
-        const btnLeft = document.getElementById('btn-left');
-        const btnRight = document.getElementById('btn-right');
-        const btnShoot = document.getElementById('btn-shoot');
+        // التحكم باللمس / الماوس (دراغ للنقل، تاب للإطلاق)
+        let isDragging = false;
+        
+        gameContainer.addEventListener('mousedown', handlePointerDown);
+        gameContainer.addEventListener('mousemove', handlePointerMove);
+        window.addEventListener('mouseup', handlePointerUp);
+        
+        gameContainer.addEventListener('touchstart', handlePointerDown, {passive: false});
+        gameContainer.addEventListener('touchmove', handlePointerMove, {passive: false});
+        window.addEventListener('touchend', handlePointerUp);
 
-        const addTouchListeners = (element, key) => {
-            element.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; });
-            element.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
-            element.addEventListener('mousedown', (e) => { e.preventDefault(); keys[key] = true; });
-            element.addEventListener('mouseup', (e) => { e.preventDefault(); keys[key] = false; });
-            element.addEventListener('mouseleave', (e) => { e.preventDefault(); keys[key] = false; });
-        };
-        addTouchListeners(btnLeft, 'left');
-        addTouchListeners(btnRight, 'right');
+        function handlePointerDown(e) {
+            if (gameState !== 'playing') return;
+            e.preventDefault();
+            isDragging = true;
+            // الإطلاق (ضربة قريبة) عند النقر
+            triggerMeleeAttack();
+            updatePlayerPositionByPointer(e);
+        }
 
-        // زر إطلاق النار للموبايل
-        btnShoot.addEventListener('touchstart', (e) => { e.preventDefault(); if(gameState === 'playing') shootBullet(); });
-        btnShoot.addEventListener('mousedown', (e) => { e.preventDefault(); if(gameState === 'playing') shootBullet(); });
+        function handlePointerMove(e) {
+            if (gameState !== 'playing' || !isDragging) return;
+            e.preventDefault();
+            updatePlayerPositionByPointer(e);
+        }
+
+        function handlePointerUp() {
+            isDragging = false;
+            player.velocityX = 0; // توقف الحركة عند رفع الإصبع
+        }
+
+        function updatePlayerPositionByPointer(e) {
+            const rect = canvas.getBoundingClientRect();
+            // دعم للمس والماوس
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            
+            // حساب مكان الإصبع نسبة لعرض الكانفاس الفعلي
+            const scaleX = canvas.width / rect.width;
+            const pointerX = (clientX - rect.left) * scaleX;
+
+            // تحديد اتجاه الحركة بناءً على مكان الإصبع مقارنة بمركز اللاعب
+            const playerCenterX = player.x + player.width / 2;
+            
+            // حركة أكثر استجابة (اللاعب يتبع الإصبع)
+            const diffX = pointerX - playerCenterX;
+            
+            if (Math.abs(diffX) > 5) {
+                // وضع سرعة تتناسب مع المسافة للوصول السلس، أو سرعة ثابتة
+                player.velocityX = diffX > 0 ? player.speed : -player.speed;
+                player.facingRight = diffX > 0;
+            } else {
+                player.velocityX = 0;
+            }
+        }
 
         startButton.addEventListener('click', startGame);
 
-        // إطلاق النار
-        function shootBullet() {
-            bullets.push({
-                x: player.facingRight ? player.x + player.width - 10 : player.x,
-                y: player.y + player.height / 2,
-                w: 10,
-                h: 20,
-                vy: -12, // سرعة الطلقة للأعلى
-                active: true
-            });
+        // ضربة المدى القريب (دائرة حول اللاعب)
+        function triggerMeleeAttack() {
+            if (meleeAttackObj.active) return; // منع التكرار السريع
+            meleeAttackObj.active = true;
+            meleeAttackObj.radius = 20; // تبدأ صغيرة
         }
 
         // --- تهيئة عناصر الخلفية ---
@@ -327,10 +375,12 @@
             platforms = [];
             redBulls = [];
             monsters = [];
-            bullets = [];
+            cookies = [];
+            powerups = [];
+            meleeAttackObj.active = false;
             
             // منصة البداية (غير قابلة للكسر للسهولة)
-            platforms.push({ x: GAME_WIDTH / 2 - 30, y: GAME_HEIGHT - 30, w: 60, h: 12, type: 'wood', jumpsLeft: 999 });
+            platforms.push({ x: GAME_WIDTH / 2 - 30, y: GAME_HEIGHT - 30, w: 60, h: 12, type: 'iron', initialJumps: Infinity, jumpsLeft: Infinity, isMoving: false });
             
             for (let i = 1; i < platformCount; i++) {
                 spawnPlatform(GAME_HEIGHT - 30 - (i * (GAME_HEIGHT / platformCount)));
@@ -342,24 +392,53 @@
             let pX = Math.random() * (GAME_WIDTH - pWidth);
             let pType = platformTypes[Math.floor(Math.random() * platformTypes.length)];
             
-            // إضافة خاصية jumpsLeft (تتحمل قفزتين)
-            let newPlatform = { x: pX, y: yPos, w: pWidth, h: 12, type: pType, jumpsLeft: 2, broken: false };
+            let isMoving = pType === 'moving';
+            let moveSpeed = isMoving ? (Math.random() > 0.5 ? 2 : -2) : 0;
+
+            // تحديد عدد القفزات بناءً على نوع المنصة
+            let jumps = 3;
+            if (pType === 'iron') jumps = Infinity;
+            else if (pType === 'mud') jumps = 1;
+            else if (pType === 'wood') jumps = 2;
+            else if (pType === 'brick' || pType === 'moving') jumps = 3;
+
+            let newPlatform = { 
+                x: pX, y: yPos, w: pWidth, h: 12, 
+                type: pType, initialJumps: jumps, jumpsLeft: jumps, broken: false,
+                isMoving: isMoving, speedX: moveSpeed
+            };
             platforms.push(newPlatform);
 
-            // فرصة ظهور ريد بول (10%)
+            // فرصة ظهور عناصر القوة (درع أو مغناطيس أو طيران) - تم تقليلها لتصبح 2%
+            let hasPowerup = false;
+            if (yPos < GAME_HEIGHT - 300 && Math.random() < 0.02) {
+                let r = Math.random();
+                let type = r < 0.33 ? 'shield' : (r < 0.66 ? 'magnet' : 'fly');
+                powerups.push({ x: pX + pWidth / 2 - 15, y: yPos - 30, w: 30, h: 30, type: type, active: true });
+                hasPowerup = true;
+            }
+
+            // فرصة ظهور كوكيز (5%)
+            let hasCookie = false;
+            if (!hasPowerup && Math.random() < 0.05) {
+                cookies.push({ x: pX + pWidth / 2 - 10, y: yPos - 25, w: 20, h: 20, active: true });
+                hasCookie = true;
+            }
+
+            // فرصة ظهور ريد بول (8%)
             let hasRedBull = false;
-            if (yPos < GAME_HEIGHT - 200 && Math.random() < 0.1) {
+            if (!hasPowerup && !hasCookie && yPos < GAME_HEIGHT - 200 && Math.random() < 0.08) {
                 redBulls.push({ x: pX + pWidth / 2 - 10, y: yPos - 36, w: 20, h: 34, active: true });
                 hasRedBull = true;
             }
 
-            // إذا لم يكن هناك ريد بول، فرصة 15% لظهور وحش
-            if (!hasRedBull && yPos < GAME_HEIGHT - 300 && Math.random() < 0.15) {
+            // تقليل فرصة ظهور الوحش لتصبح 8% بدلاً من 15%
+            if (!hasRedBull && !hasPowerup && yPos < GAME_HEIGHT - 400 && Math.random() < 0.08) {
                 monsters.push({
-                    x: pX + pWidth / 2 - 20,
-                    y: yPos - 40,
-                    w: 40,
-                    h: 40,
+                    x: pX + pWidth / 2 - 25, // تكبير الوحش قليلاً لتسهيل إصابته
+                    y: yPos - 50,
+                    w: 50,
+                    h: 50,
                     active: true
                 });
             }
@@ -369,17 +448,23 @@
             gameState = 'playing';
             overlay.style.display = 'none';
             score = 0;
+            cookieCount = 0;
             isDarkMode = false;
             gameContainer.classList.remove('dark-mode');
             scoreElement.textContent = Math.floor(score);
+            document.getElementById('cookie-count').textContent = cookieCount;
             
             player.x = GAME_WIDTH / 2 - player.width / 2;
             player.y = GAME_HEIGHT - 150;
             player.velocityY = player.jumpStrength; 
-            
-            keys.left = false;
-            keys.right = false;
-
+            player.hasShield = false;
+            player.hasMagnet = false;
+            player.isFlying = false;
+            player.shieldTimer = 0;
+            player.magnetTimer = 0;
+            player.flyTimer = 0;
+            player.cookieInvincibilityTimer = 0;
+            player.redbullInvincibilityTimer = 0;
             initBackground();
             initPlatforms();
             gameLoop();
@@ -389,7 +474,20 @@
             gameState = 'lost';
             overlay.style.display = 'flex';
             overlayTitle.textContent = 'انتهت اللعبة!';
-            overlayDesc.innerHTML = `لقد حققت:<br><b style="font-size:2em">${Math.floor(score)}</b><br>نقطة!`;
+            
+            // إخفاء صورة الغلاف والعنوان الفرعي في شاشة النهاية
+            let coverImg = document.getElementById('cover-img');
+            if(coverImg) coverImg.style.display = 'none';
+            let subtitle = document.getElementById('game-subtitle');
+            if(subtitle) subtitle.style.display = 'none';
+            
+            // تعديل تصميم المربع ليعرض النقاط
+            overlayDesc.style.textAlign = 'center';
+            overlayDesc.style.backgroundColor = 'transparent';
+            overlayDesc.style.border = 'none';
+            overlayDesc.style.padding = '0';
+            overlayDesc.innerHTML = `لقد حققت:<br><b style="font-size:2.5em; color: #fdd835; text-shadow: 2px 2px 0 #000;">${Math.floor(score)}</b><br>نقطة!`;
+            
             startButton.textContent = 'العب مرة أخرى';
             
             // تشغيل صوت الموت
@@ -399,6 +497,33 @@
 
         function update() {
             if (gameState !== 'playing') return;
+
+            // تحديث مؤقتات عناصر القوة
+            if (player.hasShield) {
+                player.shieldTimer--;
+                if (player.shieldTimer <= 0) {
+                    player.hasShield = false;
+                }
+            }
+            if (player.hasMagnet) {
+                player.magnetTimer--;
+                if (player.magnetTimer <= 0) {
+                    player.hasMagnet = false;
+                }
+            }
+            if (player.isFlying) {
+                player.flyTimer--;
+                player.velocityY = -8; // طيران مستمر للأعلى بسرعة ثابتة
+                if (player.flyTimer <= 0) {
+                    player.isFlying = false;
+                }
+            }
+            if (player.cookieInvincibilityTimer > 0) {
+                player.cookieInvincibilityTimer--;
+            }
+            if (player.redbullInvincibilityTimer > 0) {
+                player.redbullInvincibilityTimer--;
+            }
 
             // تحديث الليل والنهار
             let newDarkMode = Math.floor(score / 500) % 2 !== 0;
@@ -411,18 +536,31 @@
             // حركة اللاعب
             if (keys.right) { player.velocityX = player.speed; player.facingRight = true; }
             else if (keys.left) { player.velocityX = -player.speed; player.facingRight = false; }
-            else { player.velocityX *= 0.7; }
+            else if (!isDragging) { player.velocityX *= 0.7; } // التباطؤ فقط إذا لم يكن هناك سحب
 
             player.x += player.velocityX;
-            player.velocityY += player.gravity;
+            
+            if (!player.isFlying) {
+                player.velocityY += player.gravity;
+            }
             player.y += player.velocityY;
+
+            // تحديث حركة المنصات المتحركة
+            platforms.forEach(p => {
+                if (p.isMoving && !p.broken) {
+                    p.x += p.speedX;
+                    if (p.x <= 0 || p.x + p.w >= GAME_WIDTH) {
+                        p.speedX *= -1; // ارتداد من الجدران
+                    }
+                }
+            });
 
             // اختراق الشاشة
             if (player.x > GAME_WIDTH) player.x = -player.width;
             else if (player.x + player.width < 0) player.x = GAME_WIDTH;
 
-            // التحقق من الاصطدام بالمنصات
-            if (player.velocityY > 0) {
+            // التحقق من الاصطدام بالمنصات (فقط إذا لم يكن يطير)
+            if (player.velocityY > 0 && !player.isFlying) {
                 for (let i = 0; i < platforms.length; i++) {
                     let p = platforms[i];
                     if (!p.broken && player.y + player.height > p.y && player.y + player.height < p.y + p.h + player.velocityY && player.x + player.width > p.x && player.x < p.x + p.w) {
@@ -430,10 +568,9 @@
                         player.velocityY = player.jumpStrength;
                         player.y = p.y - player.height; 
                         
-                        // تنقيص عدد القفزات المتبقية للمنصة
                         p.jumpsLeft--;
                         if (p.jumpsLeft <= 0) {
-                            p.broken = true; // كسر المنصة
+                            p.broken = true; 
                         }
                         break; 
                     }
@@ -443,42 +580,128 @@
             // جمع الريد بول
             for (let i = 0; i < redBulls.length; i++) {
                 let rb = redBulls[i];
-                if (rb.active && player.x < rb.x + rb.w && player.x + player.width > rb.x && player.y < rb.y + rb.h && player.y + player.height > rb.y) {
+                if (!rb.active) continue;
+
+                // تأثير المغناطيس
+                if (player.hasMagnet) {
+                    let dx = (player.x + player.width/2) - (rb.x + rb.w/2);
+                    let dy = (player.y + player.height/2) - (rb.y + rb.h/2);
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < player.magnetRadius) {
+                        rb.x += dx * 0.1;
+                        rb.y += dy * 0.1;
+                    }
+                }
+
+                if (player.x < rb.x + rb.w && player.x + player.width > rb.x && player.y < rb.y + rb.h && player.y + player.height > rb.y) {
                     rb.active = false; 
-                    player.velocityY = player.superJumpStrength; 
+                    player.velocityY = player.superJumpStrength; // دفعة الريد بول
+                    player.redbullInvincibilityTimer = 60 * 2.5; // مناعة لمدة ثانيتين ونصف أثناء قفزة الريد بول
                     
-                    // تشغيل صوت الريد بول
                     redbullSound.currentTime = 0;
                     redbullSound.play().catch(e => console.log("الصوت غير مفعل"));
                 }
             }
 
-            // اصطدام اللاعب بالوحش (خسارة)
-            for (let i = 0; i < monsters.length; i++) {
-                let m = monsters[i];
-                if (m.active && player.x < m.x + m.w && player.x + player.width > m.x && player.y < m.y + m.h && player.y + player.height > m.y) {
-                    gameOver();
-                    return;
+            // جمع الكوكيز
+            for (let i = 0; i < cookies.length; i++) {
+                let c = cookies[i];
+                if (c.active && player.x < c.x + c.w && player.x + player.width > c.x && player.y < c.y + c.h && player.y + player.height > c.y) {
+                    c.active = false;
+                    cookieCount++;
+                    document.getElementById('cookie-count').textContent = cookieCount;
+                    
+                    // تشغيل صوت أكل الكوكيز
+                    cookieSound.currentTime = 0;
+                    cookieSound.play().catch(e => console.log("الصوت غير مفعل"));
+                    
+                    if (cookieCount >= 10) {
+                        cookieCount = 0; // تصفير العداد
+                        document.getElementById('cookie-count').textContent = cookieCount;
+                        score += 2000; // إضافة 2000 نقطة
+                        player.velocityY = player.superJumpStrength * 1.5; // قفزة هائلة!
+                        player.cookieInvincibilityTimer = 60 * 3; // مناعة لمدة 3 ثواني أثناء القفزة الهائلة
+                        
+                        // تأثير صوتي مشابه للريد بول عند تجميع الكوكيز
+                        redbullSound.currentTime = 0;
+                        redbullSound.play().catch(e => console.log("الصوت غير مفعل"));
+                    }
                 }
             }
 
-            // حركة الطلقات واصطدامها بالوحوش
-            bullets.forEach(b => {
-                if(b.active) {
-                    b.y += b.vy;
-                    // اختفاء الطلقة خارج الشاشة
-                    if (b.y < 0) b.active = false;
-                    
-                    // التحقق من اصطدام الطلقة بالوحش
-                    monsters.forEach(m => {
-                        if (m.active && b.active && b.x < m.x + m.w && b.x + b.w > m.x && b.y < m.y + m.h && b.y + b.h > m.y) {
-                            m.active = false; // قتل الوحش
-                            b.active = false; // تدمير الطلقة
-                            score += 50; // مكافأة لقتل الوحش
-                        }
-                    });
+            // جمع عناصر القوة (Power-ups)
+            for (let i = 0; i < powerups.length; i++) {
+                let pu = powerups[i];
+                if (pu.active && player.x < pu.x + pu.w && player.x + player.width > pu.x && player.y < pu.y + pu.h && player.y + player.height > pu.y) {
+                    pu.active = false;
+                    score += 20;
+                    if (pu.type === 'shield') {
+                        player.hasShield = true;
+                        player.shieldTimer = 60 * 15; // 15 ثانية تقريباً (على افتراض 60 إطار بالثانية)
+                    } else if (pu.type === 'magnet') {
+                        player.hasMagnet = true;
+                        player.magnetTimer = 60 * 15; // 15 ثانية
+                    } else if (pu.type === 'fly') {
+                        player.isFlying = true;
+                        player.flyTimer = 60 * 5; // 5 ثواني طيران
+                    }
                 }
-            });
+            }
+
+            // اصطدام اللاعب بالوحش
+            for (let i = 0; i < monsters.length; i++) {
+                let m = monsters[i];
+                // توسيع منطقة الاصطدام للاعب لجعله أكثر تسامحاً، أو تركها للوحش
+                let hitboxTolerence = 10; 
+                if (m.active && 
+                    player.x + hitboxTolerence < m.x + m.w && 
+                    player.x + player.width - hitboxTolerence > m.x && 
+                    player.y + player.height > m.y && 
+                    player.y < m.y + m.h) {
+                    
+                    if (player.isFlying || player.cookieInvincibilityTimer > 0 || player.redbullInvincibilityTimer > 0) {
+                        // تدمير الوحش أثناء الطيران أو قفزة الكوكيز أو قفزة الريد بول دون التأثر
+                        m.active = false;
+                        score += 50;
+                    } else if (player.hasShield) {
+                        // كسر الدرع وتدمير الوحش
+                        player.hasShield = false;
+                        player.shieldTimer = 0;
+                        document.getElementById('shield-icon').classList.remove('powerup-active');
+                        m.active = false;
+                        player.velocityY = -5; // قفزة صغيرة للارتداد
+                    } else {
+                        gameOver();
+                        return;
+                    }
+                }
+            }
+
+            // تحديث هجوم المدى القريب (Melee) واصطدامه بالوحوش
+            if (meleeAttackObj.active) {
+                meleeAttackObj.radius += 8; // سرعة اتساع الدائرة
+                
+                let playerCenterX = player.x + player.width / 2;
+                let playerCenterY = player.y + player.height / 2;
+
+                monsters.forEach(m => {
+                    if (m.active) {
+                        // التحقق من تداخل الدائرة مع مربع الوحش (تقريبي)
+                        let mx = m.x + m.w / 2;
+                        let my = m.y + m.h / 2;
+                        let dist = Math.sqrt(Math.pow(playerCenterX - mx, 2) + Math.pow(playerCenterY - my, 2));
+                        
+                        if (dist < meleeAttackObj.radius + m.w / 2) {
+                            m.active = false; // قتل الوحش القريب
+                            score += 50;
+                        }
+                    }
+                });
+
+                if (meleeAttackObj.radius >= meleeAttackObj.maxRadius) {
+                    meleeAttackObj.active = false; // انتهاء تأثير الضربة
+                }
+            }
 
             // تحريك الكاميرا (نزول العناصر للأسفل)
             if (player.y < GAME_HEIGHT / 2) {
@@ -491,7 +714,8 @@
                 platforms.forEach(p => p.y += diff);
                 redBulls.forEach(rb => rb.y += diff);
                 monsters.forEach(m => m.y += diff);
-                bullets.forEach(b => b.y += diff);
+                cookies.forEach(c => c.y += diff);
+                powerups.forEach(pu => pu.y += diff);
 
                 stars.forEach(s => { s.y += diff * 0.2; if (s.y > GAME_HEIGHT) s.y -= GAME_HEIGHT; });
                 clouds.forEach(c => { c.y += diff * 0.4; if (c.y > GAME_HEIGHT) { c.y = -50; c.x = Math.random() * GAME_WIDTH; } });
@@ -505,7 +729,8 @@
             platforms = platforms.filter(p => p.y < GAME_HEIGHT + 50 && !p.broken);
             redBulls = redBulls.filter(rb => rb.y < GAME_HEIGHT + 50 && rb.active);
             monsters = monsters.filter(m => m.y < GAME_HEIGHT + 50 && m.active);
-            bullets = bullets.filter(b => b.active);
+            cookies = cookies.filter(c => c.y < GAME_HEIGHT + 50 && c.active);
+            powerups = powerups.filter(pu => pu.y < GAME_HEIGHT + 50 && pu.active);
 
             // توليد منصات جديدة
             if (platforms.length > 0) {
@@ -529,9 +754,11 @@
 
             drawBackgroundElements();
             drawPlatforms();
+            drawPowerups();
             drawRedBulls();
+            drawCookies();
             drawMonsters();
-            drawBullets();
+            drawMeleeAttack();
             drawPlayer();
         }
 
@@ -559,10 +786,22 @@
                 ctx.save();
                 ctx.translate(p.x, p.y);
 
+                // قص حواف المنصة لتكون دائرية وناعمة
+                ctx.beginPath();
+                ctx.roundRect(0, 0, p.w, p.h, 6);
+                ctx.clip();
+
                 if (p.type === 'wood') {
                     ctx.fillStyle = '#8B5A2B'; ctx.fillRect(0, 0, p.w, p.h);
                     ctx.fillStyle = '#5C3A21'; ctx.fillRect(0, 2, p.w, 2); ctx.fillRect(0, 8, p.w, 2);
                 } 
+                else if (p.type === 'moving') { // منصة متحركة
+                    ctx.fillStyle = '#f39c12'; ctx.fillRect(0, 0, p.w, p.h); // برتقالي
+                    ctx.fillStyle = '#e67e22'; ctx.fillRect(0, 0, p.w, 3);
+                    ctx.fillStyle = '#d35400';
+                    ctx.beginPath(); ctx.moveTo(5, 6); ctx.lineTo(15, 6); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(p.w-15, 6); ctx.lineTo(p.w-5, 6); ctx.stroke();
+                }
                 else if (p.type === 'iron') {
                     ctx.fillStyle = '#7f8c8d'; ctx.fillRect(0, 0, p.w, p.h);
                     ctx.fillStyle = '#bdc3c7'; ctx.fillRect(0, 0, p.w, 3);
@@ -581,16 +820,92 @@
                     ctx.beginPath(); ctx.arc(50, 4, 4, 0, Math.PI*2); ctx.fill();
                 }
 
-                // رسم تشقق إذا كانت المنصة تم القفز عليها مرة واحدة وباقي لها قفزة واحدة
-                if (p.jumpsLeft === 1) {
+                // رسم تشققات بناءً على القفزات المتبقية (لا تنطبق على الحديد)
+                if (p.type !== 'iron' && p.initialJumps > p.jumpsLeft) {
                     ctx.strokeStyle = 'rgba(0,0,0,0.8)';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(p.w / 2, 0);
-                    ctx.lineTo(p.w / 2 + 5, p.h / 2);
-                    ctx.lineTo(p.w / 2 - 5, p.h);
-                    ctx.stroke();
+                    ctx.lineWidth = 1;
+                    
+                    let damage = p.initialJumps - p.jumpsLeft;
+
+                    // التشقق الأول
+                    if (damage >= 1) {
+                        ctx.beginPath();
+                        ctx.moveTo(p.w * 0.3, 0);
+                        ctx.lineTo(p.w * 0.4, p.h / 2);
+                        ctx.lineTo(p.w * 0.35, p.h);
+                        ctx.stroke();
+                    }
+
+                    // التشقق الثاني
+                    if (damage >= 2) {
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(p.w * 0.7, 0);
+                        ctx.lineTo(p.w * 0.6, p.h / 2);
+                        ctx.lineTo(p.w * 0.75, p.h);
+                        ctx.stroke();
+                    }
                 }
+
+                ctx.restore();
+            });
+        }
+
+        function drawPowerups() {
+            powerups.forEach(pu => {
+                if (!pu.active) return;
+                ctx.save();
+                ctx.translate(pu.x, pu.y);
+                
+                if (pu.type === 'shield') {
+                    // درع أزرق
+                    ctx.fillStyle = 'rgba(0, 123, 255, 0.8)';
+                    ctx.beginPath(); ctx.arc(pu.w/2, pu.h/2, pu.w/2, 0, Math.PI*2); ctx.fill();
+                    ctx.strokeStyle = 'white'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(pu.w/2, pu.h/2, pu.w/2 - 2, 0, Math.PI*2); ctx.stroke();
+                    ctx.fillStyle = 'white';
+                    ctx.font = '14px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('🛡️', pu.w/2, pu.h/2 + 2);
+                } else if (pu.type === 'magnet') {
+                    // مغناطيس أحمر
+                    ctx.fillStyle = 'rgba(220, 53, 69, 0.8)';
+                    ctx.beginPath(); ctx.arc(pu.w/2, pu.h/2, pu.w/2, 0, Math.PI*2); ctx.fill();
+                    ctx.strokeStyle = 'white'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(pu.w/2, pu.h/2, pu.w/2 - 2, 0, Math.PI*2); ctx.stroke();
+                    ctx.fillStyle = 'white';
+                    ctx.font = '14px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('🧲', pu.w/2, pu.h/2 + 2);
+                } else if (pu.type === 'fly') {
+                    // طيران أخضر
+                    ctx.fillStyle = 'rgba(40, 167, 69, 0.8)';
+                    ctx.beginPath(); ctx.arc(pu.w/2, pu.h/2, pu.w/2, 0, Math.PI*2); ctx.fill();
+                    ctx.strokeStyle = 'white'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(pu.w/2, pu.h/2, pu.w/2 - 2, 0, Math.PI*2); ctx.stroke();
+                    ctx.fillStyle = 'white';
+                    ctx.font = '14px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('🚀', pu.w/2, pu.h/2 + 2);
+                }
+                
+                ctx.restore();
+            });
+        }
+
+        function drawCookies() {
+            cookies.forEach(c => {
+                if (!c.active) return;
+                ctx.save(); ctx.translate(c.x, c.y);
+                
+                // رسم البسكويتة
+                ctx.fillStyle = '#D2B48C'; // لون بني فاتح
+                ctx.beginPath(); ctx.arc(c.w/2, c.h/2, c.w/2, 0, Math.PI * 2); ctx.fill();
+                
+                // رسم حبيبات الشوكولاتة
+                ctx.fillStyle = '#4b3621'; 
+                ctx.beginPath(); ctx.arc(c.w * 0.3, c.h * 0.3, 2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(c.w * 0.7, c.h * 0.4, 1.5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(c.w * 0.5, c.h * 0.7, 2, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(c.w * 0.2, c.h * 0.6, 1.5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(c.w * 0.8, c.h * 0.7, 2, 0, Math.PI*2); ctx.fill();
 
                 ctx.restore();
             });
@@ -629,33 +944,118 @@
             });
         }
 
-        function drawBullets() {
-            bullets.forEach(b => {
-                if (!b.active) return;
-                ctx.fillStyle = '#FFD700'; // لون الطلقة أصفر
-                ctx.beginPath();
-                ctx.arc(b.x + b.w/2, b.y + b.h/2, b.w/2, 0, Math.PI*2);
-                ctx.fill();
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = "red";
-                ctx.shadowBlur = 0; // reset
-            });
+        function drawMeleeAttack() {
+            if (!meleeAttackObj.active) return;
+            
+            let cx = player.x + player.width / 2;
+            let cy = player.y + player.height / 2;
+            
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx, cy, meleeAttackObj.radius, 0, Math.PI * 2);
+            // تأثير الهالة (Fade out كلما كبرت)
+            let opacity = 1 - (meleeAttackObj.radius / meleeAttackObj.maxRadius);
+            ctx.strokeStyle = `rgba(0, 255, 255, ${opacity})`;
+            ctx.lineWidth = 5;
+            ctx.stroke();
+            
+            ctx.fillStyle = `rgba(0, 255, 255, ${opacity * 0.3})`;
+            ctx.fill();
+            ctx.restore();
         }
 
         function drawPlayer() {
-            if (!playerImg.complete || playerImg.naturalWidth === 0) {
-                ctx.fillStyle = '#141f36'; ctx.fillRect(player.x, player.y, player.width, player.height);
+            // رسم هالة الطيران (نار أو شرارة تحت اللاعب)
+            if (player.isFlying) {
+                ctx.save();
+                ctx.fillStyle = 'orange';
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2 - 10, player.y + player.height, 10 + Math.random()*5, 0, Math.PI*2);
+                ctx.arc(player.x + player.width/2 + 10, player.y + player.height, 10 + Math.random()*5, 0, Math.PI*2);
+                ctx.fill();
+                ctx.fillStyle = 'yellow';
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2 - 10, player.y + player.height + 5, 5 + Math.random()*5, 0, Math.PI*2);
+                ctx.arc(player.x + player.width/2 + 10, player.y + player.height + 5, 5 + Math.random()*5, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // رسم هالة الدرع إذا كان مفعلاً
+            if (player.hasShield) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2, player.y + player.height/2, player.height/2 + 10, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(0, 123, 255, 0.3)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(0, 123, 255, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // وميض الدرع قبل أن ينتهي
+                if (player.shieldTimer < 180 && Math.floor(player.shieldTimer / 10) % 2 === 0) {
+                   ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                   ctx.fill();
+                }
+                ctx.restore();
+            }
+
+            // رسم هالة قفزة الكوكيز (المناعة)
+            if (player.cookieInvincibilityTimer > 0) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2, player.y + player.height/2, player.height/2 + 15, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(210, 105, 30, 0.4)'; // لون ذهبي مائل للبني
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255, 215, 0, 0.8)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // رسم هالة قفزة الريد بول (المناعة)
+            if (player.redbullInvincibilityTimer > 0) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2, player.y + player.height/2, player.height/2 + 15, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(15, 76, 129, 0.4)'; // أزرق خاص بالريد بول
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(192, 192, 192, 0.8)'; // فضي
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // رسم تأثير المغناطيس
+            if (player.hasMagnet) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(player.x + player.width/2, player.y + player.height/2, player.magnetRadius, 0, Math.PI*2);
+                ctx.strokeStyle = 'rgba(220, 53, 69, 0.1)'; // خط خفيف أحمر
+                ctx.lineWidth = 1;
+                // حركة نابضة
+                if (Math.floor(Date.now() / 100) % 2 === 0) ctx.stroke();
+                ctx.restore();
+            }
+
+            // تحديد الصورة المطلوبة بناءً على حالة الهجوم
+            let currentImg = meleeAttackObj.active ? attackImg : playerImg;
+
+            if (!currentImg.complete || currentImg.naturalWidth === 0) {
+                // رسم بديل للاعب إذا الصورة مو موجودة
+                ctx.fillStyle = meleeAttackObj.active ? '#e74c3c' : '#141f36'; // يتغير لونه للأحمر إذا كان يهاجم ومافي صورة
+                ctx.fillRect(player.x, player.y, player.width, player.height);
                 ctx.fillStyle = 'white';
                 let eyeX = player.facingRight ? player.x + 30 : player.x + 10;
                 ctx.fillRect(eyeX, player.y + 10, 10, 10);
                 return;
             }
             if (player.facingRight) {
-                ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+                ctx.drawImage(currentImg, player.x, player.y, player.width, player.height);
             } else {
                 ctx.save();
                 ctx.scale(-1, 1);
-                ctx.drawImage(playerImg, -player.x - player.width, player.y, player.width, player.height);
+                ctx.drawImage(currentImg, -player.x - player.width, player.y, player.width, player.height);
                 ctx.restore();
             }
         }
