@@ -96,9 +96,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('cover.png');
-            background-size: cover;
-            background-position: center;
+            background-color: rgba(0,0,0,0.8); /* تم إرجاع الخلفية الداكنة النظيفة بدل الصورة */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -185,14 +183,13 @@
         <div id="cookie-ui">🍪 <span id="cookie-count">0</span>/10</div>
         
         <div id="overlay">
-            <!-- تمت إضافة الصندوق الشفاف هنا -->
+            <!-- الصندوق الشفاف الرئيسي (الوحيد الآن) -->
             <div id="content-box">
-                <img src="cover.png" id="cover-img" alt="غلاف اللعبة" style="max-width: 150px; height: auto; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
                 <h1 id="game-title" style="margin-bottom: 5px; font-size: 2.5em; text-shadow: 3px 3px 0 #000;">علي النطاط</h1>
                 <h2 id="game-subtitle" style="font-size: 1.2em; color: #fdd835; margin-top: 0; margin-bottom: 20px; text-shadow: 2px 2px 0 #000;">بالثوب الكحلي والسماعات</h2>
                 
-                <!-- تم تعديل عرض وخلفية هذا القسم ليتناسب مع الصندوق الجديد -->
-                <div id="game-desc" style="text-align: right; background-color: rgba(0,0,0,0.3); padding: 15px 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1); width: 100%; box-sizing: border-box;">
+                <!-- تم إزالة خلفية وإطار هذا القسم ليكون جزءاً متناسقاً من البوكس الرئيسي -->
+                <div id="game-desc" style="text-align: right; padding: 0; margin-bottom: 25px; width: 100%; box-sizing: border-box;">
                     <div style="color: #4facfe; font-weight: bold; font-size: 1.1em; margin-bottom: 8px;">توجيهات:</div>
                     <ul style="margin: 0 0 15px 0; padding-right: 25px; line-height: 1.6; font-size: 0.95em; color: #eee;">
                         <li>اسحب يمين ويسار للحركة</li>
@@ -497,9 +494,7 @@
             overlay.style.display = 'flex';
             overlayTitle.textContent = 'انتهت اللعبة!';
             
-            // إخفاء صورة الغلاف والعنوان الفرعي في شاشة النهاية
-            let coverImg = document.getElementById('cover-img');
-            if(coverImg) coverImg.style.display = 'none';
+            // تم إزالة أكواد إخفاء الصورة لأننا حذفناها من HTML أساساً
             let subtitle = document.getElementById('game-subtitle');
             if(subtitle) subtitle.style.display = 'none';
             
