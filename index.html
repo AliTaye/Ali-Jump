@@ -96,7 +96,10 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.8); /* تم إرجاع الخلفية الداكنة النظيفة بدل الصورة */
+            /* وضع صورة الكفر كخلفية كاملة مع تظليل خفيف لضمان وضوح النصوص */
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('cover.png');
+            background-size: cover;
+            background-position: center;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -120,13 +123,13 @@
 
         /* تنسيق الصندوق الشفاف الجديد */
         #content-box {
-            background-color: rgba(0, 0, 0, 0.75);
+            background-color: rgba(0, 0, 0, 0.1); /* شفاف جداً */
             padding: 30px 20px;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            border: 2px solid rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px); /* غبش خفيف جداً يظهر الخلفية بوضوح */
+            -webkit-backdrop-filter: blur(4px);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -191,13 +194,13 @@
                 <!-- تم إزالة خلفية وإطار هذا القسم ليكون جزءاً متناسقاً من البوكس الرئيسي -->
                 <div id="game-desc" style="text-align: right; padding: 0; margin-bottom: 25px; width: 100%; box-sizing: border-box;">
                     <div style="color: #4facfe; font-weight: bold; font-size: 1.1em; margin-bottom: 8px;">توجيهات:</div>
-                    <ul style="margin: 0 0 15px 0; padding-right: 25px; line-height: 1.6; font-size: 0.95em; color: #eee;">
+                    <ul style="margin: 0 0 15px 0; padding-right: 25px; line-height: 1.6; font-size: 0.95em; color: #eee; text-shadow: 1px 1px 2px #000;">
                         <li>اسحب يمين ويسار للحركة</li>
                         <li>انقر بجانب جبلي! ولا تسأل لماذا</li>
                         <li>اجمع الكوكيز للنطة العالية</li>
                     </ul>
                     <div style="color: #ff9a9e; font-weight: bold; font-size: 1.1em; margin-bottom: 8px;">ملاحظات:</div>
-                    <ul style="margin: 0; padding-right: 25px; line-height: 1.6; font-size: 0.95em; color: #eee;">
+                    <ul style="margin: 0; padding-right: 25px; line-height: 1.6; font-size: 0.95em; color: #eee; text-shadow: 1px 1px 2px #000;">
                         <li>المنصات تنكسر حسب قوتها!</li>
                     </ul>
                 </div>
