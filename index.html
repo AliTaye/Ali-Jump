@@ -425,20 +425,20 @@
                 hasCookie = true;
             }
 
-            // فرصة ظهور ريد بول (8%)
+            // فرصة ظهور ريد بول (6%)
             let hasRedBull = false;
-            if (!hasPowerup && !hasCookie && yPos < GAME_HEIGHT - 200 && Math.random() < 0.08) {
+            if (!hasPowerup && !hasCookie && yPos < GAME_HEIGHT - 200 && Math.random() < 0.06) {
                 redBulls.push({ x: pX + pWidth / 2 - 10, y: yPos - 36, w: 20, h: 34, active: true });
                 hasRedBull = true;
             }
 
-            // تقليل فرصة ظهور الوحش لتصبح 8% بدلاً من 15%
+            // تقليل فرصة ظهور الوحش وتكبير حجمه ليكون أوضح
             if (!hasRedBull && !hasPowerup && yPos < GAME_HEIGHT - 400 && Math.random() < 0.08) {
                 monsters.push({
-                    x: pX + pWidth / 2 - 25, // تكبير الوحش قليلاً لتسهيل إصابته
-                    y: yPos - 50,
-                    w: 50,
-                    h: 50,
+                    x: pX + pWidth / 2 - 35, // توسيط الوحش بناءً على العرض الجديد
+                    y: yPos - 70,            // رفع الوحش بناءً على الارتفاع الجديد ليجلس على المنصة
+                    w: 70,                   // زيادة العرض (كان 50 وأصبح 70)
+                    h: 70,                   // زيادة الارتفاع (كان 50 وأصبح 70)
                     active: true
                 });
             }
